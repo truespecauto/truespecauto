@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Inspection - TrueSpec Automotive</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        truespec: {
+                            navy: '#1e3a8a',
+                            sky: '#0284c7',
+                            grey: '#64748b',
+                            light: '#f8fafc',
+                            amber: '#f59e0b'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="config.js"></script>
+
+</head>
+<body class="bg-truespec-light min-h-screen">
+
+    <!-- Navbar -->
+    <nav class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-20">
+                <div class="flex items-center">
+                    <a href="index.html" class="flex items-center">
+                        <img class="h-10 w-auto mr-3" src="images/logo.png" alt="TrueSpec Logo" onerror="this.style.display='none'">
+                        <span class="font-bold text-2xl tracking-tight text-truespec-navy">TrueSpec</span>
+                    </a>
+                </div>
+                <div class="flex items-center">
+                    <a href="index.html" class="text-truespec-grey hover:text-truespec-navy font-bold text-sm uppercase tracking-wide transition">Cancel & Back</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Booking Form -->
+    <div class="max-w-3xl mx-auto py-12 px-4 sm:px-6">
+        <div class="bg-white rounded-xl shadow-xl overflow-hidden border border-gray-100">
+            
+            <!-- Header -->
+            <div class="bg-truespec-navy py-8 px-8 text-center relative overflow-hidden">
+                <div class="absolute -right-10 -top-10 w-40 h-40 bg-blue-800 rounded-full opacity-50 blur-2xl"></div>
+                <h1 class="text-3xl font-extrabold text-white uppercase tracking-wide relative z-10">Book Your Inspection</h1>
+                <p class="text-blue-200 mt-2 text-sm relative z-10">Fill out the details below to schedule your pre-purchase vehicle inspection.</p>
+            </div>
+            
+            <form id="bookingForm" class="py-8 px-8 space-y-8">
+                
+                <!-- 1. Client Information -->
+                <div>
+                    <h3 class="text-xs font-bold text-truespec-sky uppercase tracking-widest border-b pb-2 mb-4">1. Your Details</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700">Full Name <span class="text-red-500">*</span></label>
+                            <input type="text" id="name" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm border p-2.5 focus:ring-2 focus:ring-truespec-sky focus:border-truespec-sky transition">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700">Email Address <span class="text-red-500">*</span></label>
+                            <input type="email" id="email" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm border p-2.5 focus:ring-2 focus:ring-truespec-sky focus:border-truespec-sky transition">
+                            <p class="text-xs text-gray-400 mt-1">We will send your login details here.</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700">Phone Number <span class="text-red-500">*</span></label>
+                            <input type="tel" id="phone" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm border p-2.5 focus:ring-2 focus:ring-truespec-sky focus:border-truespec-sky transition">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700">WhatsApp Number (Optional)</label>
+                            <input type="tel" id="whatsapp" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm border p-2.5 focus:ring-2 focus:ring-truespec-sky focus:border-truespec-sky transition">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Vehicle Information -->
+                <div>
+                    <h3 class="text-xs font-bold text-truespec-sky uppercase tracking-widest border-b pb-2 mb-4">2. Vehicle Details</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700">Make <span class="text-red-500">*</span></label>
+                            <input type="text" id="make" placeholder="e.g. Toyota" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm border p-2.5 focus:ring-2 focus:ring-truespec-sky focus:border-truespec-sky transition">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700">Model <span class="text-red-500">*</span></label>
+                            <input type="text" id="model" placeholder="e.g. Land Cruiser Prado" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm border p-2.5 focus:ring-2 focus:ring-truespec-sky focus:border-truespec-sky transition">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700">Year of Manufacture <span class="text-red-500">*</span></label>
+                            <input type="number" id="year" placeholder="e.g. 2018" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm border p-2.5 focus:ring-2 focus:ring-truespec-sky focus:border-truespec-sky transition">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700">Registration Number (Optional)</label>
+                            <input type="text" id="registrationNumber" placeholder="e.g. KDA 123X" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm border p-2.5 focus:ring-2 focus:ring-truespec-sky focus:border-truespec-sky transition">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-bold text-gray-700">Inspection Plan <span class="text-red-500">*</span></label>
+                            <select id="inspectionType" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm border p-2.5 focus:ring-2 focus:ring-truespec-sky focus:border-truespec-sky transition bg-white">
+                                <option value="" disabled selected>Select a plan...</option>
+                                <option value="Small Car (10k)">Small Car / Sedan (KES 10,000)</option>
+                                <option value="Large/SUV (15k)">Large Car / SUV / 4x4 (KES 15,000)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Seller & Location -->
+                <div>
+                    <h3 class="text-xs font-bold text-truespec-sky uppercase tracking-widest border-b pb-2 mb-4">3. Seller & Location</h3>
+                    <div class="grid grid-cols-1 gap-6">
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700">Seller / Dealership Name <span class="text-red-500">*</span></label>
+                            <input type="text" id="sellerName" placeholder="e.g. John Doe OR Kai & Karo Motors" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm border p-2.5 focus:ring-2 focus:ring-truespec-sky focus:border-truespec-sky transition">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700">Location Description <span class="text-red-500">*</span></label>
+                            <textarea id="locationText" rows="2" placeholder="e.g. Ngong Road, near Junction Mall. Yard is called XYZ Motors." required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm border p-2.5 focus:ring-2 focus:ring-truespec-sky focus:border-truespec-sky transition"></textarea>
+                        </div>
+
+                        <!-- MAP PLACEHOLDER -->
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Pinpoint Location on Map (Optional)</label>
+                            <div id="mapPlaceholder" class="w-full h-48 bg-gray-100 border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center text-gray-400">
+                                <span class="text-sm font-medium">[ Google Maps API Placeholder ]</span>
+                            </div>
+                            <!-- Hidden inputs to store coordinates once map API is connected -->
+                            <input type="hidden" id="lat" value="">
+                            <input type="hidden" id="lng" value="">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. Logistics & Extras -->
+                <div>
+                    <h3 class="text-xs font-bold text-truespec-sky uppercase tracking-widest border-b pb-2 mb-4">4. Logistics</h3>
+                    <div class="grid grid-cols-1 gap-6">
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700">Preferred Date/Time <span class="text-red-500">*</span></label>
+                            <input type="text" id="preferredDate" placeholder="e.g. Tomorrow morning, or DD/MM/YYYY" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm border p-2.5 focus:ring-2 focus:ring-truespec-sky focus:border-truespec-sky transition">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700">Specific Concerns / Notes (Optional)</label>
+                            <textarea id="notes" rows="2" placeholder="e.g. Please check if the gearbox shifts smoothly, seller mentioned a scratch on left door." class="mt-1 block w-full border-gray-300 rounded-md shadow-sm border p-2.5 focus:ring-2 focus:ring-truespec-sky focus:border-truespec-sky transition"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">Upload Vehicle Photos (Optional)</label>
+                            <p class="text-xs text-gray-500 mb-2">If you have photos from the seller, upload them here (Max 5MB each. JPG, PNG, PDF).</p>
+                            <input type="file" id="photos" multiple accept="image/jpeg, image/png, application/pdf" class="block w-full text-sm text-gray-500
+                            file:mr-4 file:py-2.5 file:px-4
+                            file:rounded-md file:border-0
+                            file:text-sm file:font-bold file:uppercase
+                            file:bg-blue-50 file:text-truespec-navy
+                            hover:file:bg-blue-100 cursor-pointer transition
+                            "/>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit -->
+                <div class="pt-6 border-t border-gray-200">
+                    <button type="submit" id="submitBtn" class="w-full flex justify-center py-4 px-4 border border-transparent rounded-md shadow-lg text-lg font-bold text-white bg-truespec-amber hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-truespec-amber transition transform hover:-translate-y-0.5 uppercase tracking-wide">
+                        Submit Inspection Request
+                    </button>
+                    <p class="text-center text-xs text-gray-400 mt-4">By submitting, you agree to TrueSpec Automotive's Terms of Service.</p>
+                </div>
+            </form>
+
+            <!-- Success Message (Hidden by default) -->
+            <div id="successMessage" class="hidden py-16 px-8 text-center bg-gray-50">
+                <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-green-100 mb-6 border-4 border-white shadow-sm">
+                    <svg class="h-10 w-10 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+                <h3 class="text-3xl font-extrabold text-truespec-navy uppercase tracking-wide">Booking Received!</h3>
+                <p class="mt-4 text-gray-600 text-lg max-w-lg mx-auto leading-relaxed">
+                    We have received your inspection request. We have created a secure client account for you and sent the login details to your email.
+                </p>
+                <div class="mt-10 flex flex-col sm:flex-row justify-center gap-4">
+                    <a href="login.html" class="inline-block px-8 py-3 bg-truespec-navy text-white font-bold rounded shadow hover:bg-blue-900 transition uppercase tracking-wide">Login to Portal</a>
+                    <a href="index.html" class="inline-block px-8 py-3 bg-white text-truespec-navy border border-gray-300 font-bold rounded shadow-sm hover:bg-gray-50 transition uppercase tracking-wide">Return to Home</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Check URL params for vehicle type (pre-filling logic from homepage pricing)
+        const urlParams = new URLSearchParams(window.location.search);
+        const typeParam = urlParams.get('type');
+        if(typeParam) {
+            const selectField = document.getElementById('inspectionType');
+            if(typeParam === 'small') selectField.value = 'Small Car (10k)';
+            if(typeParam === 'large') selectField.value = 'Large/SUV (15k)';
+        }
+
+        document.getElementById('bookingForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const btn = document.getElementById('submitBtn');
+            const originalText = btn.innerText;
+            btn.disabled = true;
+            btn.innerText = 'UPLOADING AND SECURING BOOKING...';
+            btn.classList.add('opacity-75', 'cursor-not-allowed');
+
+            // Use FormData to handle text + multiple files
+            const formData = new FormData();
+            
+            // Append Client Info
+            formData.append('name', document.getElementById('name').value);
+            formData.append('email', document.getElementById('email').value);
+            formData.append('phone', document.getElementById('phone').value);
+            formData.append('whatsapp', document.getElementById('whatsapp').value);
+            
+            // Append Vehicle Info
+            formData.append('make', document.getElementById('make').value);
+            formData.append('model', document.getElementById('model').value);
+            formData.append('year', document.getElementById('year').value);
+            formData.append('registrationNumber', document.getElementById('registrationNumber').value);
+            formData.append('inspectionType', document.getElementById('inspectionType').value);
+            
+            // Append Seller & Location
+            formData.append('sellerName', document.getElementById('sellerName').value);
+            formData.append('locationText', document.getElementById('locationText').value);
+            formData.append('lat', document.getElementById('lat').value);
+            formData.append('lng', document.getElementById('lng').value);
+            
+            // Append Logistics
+            formData.append('preferredDate', document.getElementById('preferredDate').value);
+            formData.append('notes', document.getElementById('notes').value);
+
+            // Append Photos
+            const fileInput = document.getElementById('photos');
+            for (let i = 0; i < fileInput.files.length; i++) {
+                formData.append('photos', fileInput.files[i]);
+            }
+
+            try {
+                const res = await fetch(API_BASE_URL + '/api/data/book', {
+                    method: 'POST',
+                    body: formData // Do not set Content-Type, browser sets it automatically for FormData
+                });
+                
+                if (res.ok) {
+                    document.getElementById('bookingForm').classList.add('hidden');
+                    document.getElementById('successMessage').classList.remove('hidden');
+                    window.scrollTo(0, 0);
+                } else {
+                    const data = await res.json();
+                    alert(data.message || 'Submission failed. Please check your inputs.');
+                    resetButton();
+                }
+            } catch (err) {
+                console.error(err);
+                alert('An error occurred. Please check your internet connection.');
+                resetButton();
+            }
+
+            function resetButton() {
+                btn.disabled = false;
+                btn.innerText = originalText;
+                btn.classList.remove('opacity-75', 'cursor-not-allowed');
+            }
+        });    
+    </script>
+</body>
+</html>

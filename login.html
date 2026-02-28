@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - TrueSpec Automotive</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        truespec: { blue: '#1e3a8a', grey: '#64748b', light: '#f8fafc' }
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="config.js"></script>
+
+</head>
+<body class="bg-truespec-light h-screen flex items-center justify-center relative">
+
+    <div class="bg-white p-8 rounded-lg shadow-lg max-w-sm w-full z-10">
+        <div class="text-center mb-6">
+            <img class="h-10 w-auto mr-3" src="images/logo.png" alt="TrueSpec Logo" onerror="this.style.display='none'" style="display: block; justify-self: center;">
+            <h2 class="text-3xl font-bold text-truespec-blue">Welcome Back</h2>
+            <p class="text-gray-500">Log in to view reports & jobs</p>
+        </div>
+
+        <form id="loginForm" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Email Address</label>
+                <input type="email" id="email" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-truespec-blue focus:border-truespec-blue">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Password</label>
+                <!-- PASSWORD TOGGLE CONTAINER -->
+                <div class="relative mt-1">
+                    <input type="password" id="password" required class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-truespec-blue focus:border-truespec-blue pr-10">
+                    <button type="button" onclick="togglePasswordVisibility('password', 'eyeIconLogin', 'eyeSlashIconLogin')" class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-truespec-blue focus:outline-none">
+                        <!-- Eye Icon (Show) -->
+                        <svg id="eyeIconLogin" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                        <!-- Eye Slash Icon (Hide) - Hidden by default -->
+                        <svg id="eyeSlashIconLogin" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.05 10.05 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.05 10.05 0 01-3.772 4.772m0 0L21 21" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="text-right mt-1">
+                    <button type="button" onclick="showForgotModal()" class="text-xs text-truespec-blue hover:underline">Forgot Password?</button>
+                </div>
+            </div>
+
+            <button type="submit" id="loginBtn" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-truespec-blue hover:bg-blue-800 transition">
+                Log In
+            </button>
+        </form>
+
+        <div class="mt-6 text-center">
+            <p class="text-sm text-gray-600">Don't have an account? <a href="book.html" class="font-medium text-truespec-blue hover:text-blue-800">Book an Inspection</a></p>
+        </div>
+    </div>
+
+    <!-- MODAL 1: Forgot Password (Enter Email) -->
+    <div id="forgotModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-70 flex items-center justify-center z-50">
+        <div class="bg-white p-6 rounded-lg shadow-xl w-80">
+            <h3 class="text-lg font-bold text-gray-800 mb-2">Reset Password</h3>
+            <p class="text-sm text-gray-500 mb-4">Enter your email to receive a code.</p>
+            <input type="email" id="forgotEmail" placeholder="your@email.com" class="w-full border p-2 rounded mb-4">
+            <div class="flex justify-end space-x-2">
+                <button onclick="hideModal('forgotModal')" class="px-3 py-1 text-sm text-gray-500">Cancel</button>
+                <button onclick="submitForgot()" class="px-3 py-1 text-sm bg-truespec-blue text-white rounded">Send Code</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: Reset Password (Enter Code + New Pass) -->
+    <div id="resetModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-70 flex items-center justify-center z-50">
+        <div class="bg-white p-6 rounded-lg shadow-xl w-80">
+            <h3 class="text-lg font-bold text-gray-800 mb-2">Enter Reset Code</h3>
+            <input type="text" id="resetCode" placeholder="6-digit Code" class="w-full border p-2 rounded mb-2">
+            <div class="relative">
+                <input type="password" id="resetNewPass" placeholder="New Password" class="w-full border p-2 rounded mb-4 pr-10">
+                <button type="button" onclick="togglePasswordVisibility('resetNewPass', 'eyeReset', 'eyeSlashReset')" class="absolute top-2 right-2 text-gray-500">
+                    <svg id="eyeReset" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                    <svg id="eyeSlashReset" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.05 10.05 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.05 10.05 0 01-3.772 4.772m0 0L21 21" /></svg>
+                </button>
+            </div>
+            <div class="flex justify-end space-x-2">
+                <button onclick="hideModal('resetModal')" class="px-3 py-1 text-sm text-gray-500">Cancel</button>
+                <button onclick="submitReset()" class="px-3 py-1 text-sm bg-green-600 text-white rounded">Reset Password</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3: Force Change Password (Temp Pass) -->
+    <div id="forceChangeModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-90 flex items-center justify-center z-50">
+        <div class="bg-white p-6 rounded-lg shadow-xl w-96">
+            <h3 class="text-xl font-bold text-red-600 mb-2">Security Update Required</h3>
+            <p class="text-sm text-gray-600 mb-4">You are using a temporary password. Please set a new secure password to continue.</p>
+            <form id="forceChangeForm">
+                <label class="block text-sm font-medium text-gray-700">New Password</label>
+                <div class="relative">
+                    <input type="password" id="forceNewPass" required class="mt-1 block w-full border border-gray-300 rounded p-2 mb-4 pr-10">
+                     <button type="button" onclick="togglePasswordVisibility('forceNewPass', 'eyeForce', 'eyeSlashForce')" class="absolute top-2 right-2 text-gray-500">
+                        <svg id="eyeForce" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                        <svg id="eyeSlashForce" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.05 10.05 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.05 10.05 0 01-3.772 4.772m0 0L21 21" /></svg>
+                    </button>
+                </div>
+                <button type="submit" class="w-full bg-truespec-blue text-white py-2 rounded font-bold">Update & Login</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // --- HELPER: Toggle Password Visibility ---
+        function togglePasswordVisibility(inputId, eyeIconId, eyeSlashIconId) {
+            const input = document.getElementById(inputId);
+            const eyeIcon = document.getElementById(eyeIconId);
+            const eyeSlashIcon = document.getElementById(eyeSlashIconId);
+            
+            if (input.type === "password") {
+                input.type = "text";
+                eyeIcon.classList.add("hidden");
+                eyeSlashIcon.classList.remove("hidden");
+            } else {
+                input.type = "password";
+                eyeIcon.classList.remove("hidden");
+                eyeSlashIcon.classList.add("hidden");
+            }
+        }
+
+        // --- LOGIC: Login ---
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('loginBtn');
+            btn.innerText = "Checking...";
+            btn.disabled = true;
+
+            const payload = {
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value
+            };
+
+            try {
+                const res = await fetch(API_BASE_URL + '/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const data = await res.json();
+                
+                if (res.ok) {
+                    // Store Token
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data));
+                    
+                    // CHECK: Is it a temp password?
+                    if (data.requirePasswordChange) {
+                        document.getElementById('forceChangeModal').classList.remove('hidden');
+                    } else {
+                        window.location.href = 'dashboard.html';
+                    }
+                } else {
+                    alert(data.message || 'Login failed');
+                    btn.disabled = false;
+                    btn.innerText = "Log In";
+                }
+            } catch (err) {
+                console.error(err);
+                alert('An error occurred.');
+                btn.disabled = false;
+                btn.innerText = "Log In";
+            }
+        });
+
+        // --- LOGIC: Force Change ---
+        document.getElementById('forceChangeForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const newPass = document.getElementById('forceNewPass').value;
+            const token = localStorage.getItem('token');
+
+            try {
+                const res = await fetch(API_BASE_URL + '/api/auth/update-password', {
+                    method: 'PUT',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}` 
+                    },
+                    body: JSON.stringify({ newPassword: newPass })
+                });
+
+                if(res.ok) {
+                    alert("Password updated! Redirecting...");
+                    window.location.href = '/dashboard.html';
+                } else {
+                    alert("Failed to update password.");
+                }
+            } catch(e) { console.error(e); }
+        });
+
+        // --- LOGIC: Forgot / Reset ---
+        function showForgotModal() {
+            document.getElementById('forgotModal').classList.remove('hidden');
+        }
+        function hideModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        async function submitForgot() {
+            const email = document.getElementById('forgotEmail').value;
+            if(!email) return alert("Enter email");
+            
+            // Save email for next step
+            localStorage.setItem('resetEmail', email);
+
+            const res = await fetch(API_BASE_URL + '/api/auth/forgot-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
+
+            if(res.ok) {
+                hideModal('forgotModal');
+                document.getElementById('resetModal').classList.remove('hidden');
+                alert("Code sent to your email.");
+            } else {
+                alert("Email not found or error sending.");
+            }
+        }
+
+        async function submitReset() {
+            const email = localStorage.getItem('resetEmail');
+            const code = document.getElementById('resetCode').value;
+            const newPass = document.getElementById('resetNewPass').value;
+
+            const res = await fetch(API_BASE_URL + '/api/auth/reset-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, code, newPassword: newPass })
+            });
+
+            if(res.ok) {
+                alert("Password reset! You can now log in.");
+                window.location.reload();
+            } else {
+                alert("Invalid code or error.");
+            }
+        }
+    </script>
+</body>
+</html>

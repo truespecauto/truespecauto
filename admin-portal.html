@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TrueSpec Admin Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        truespec: { navy: '#1e3a8a', sky: '#0284c7', amber: '#f59e0b' }
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="config.js"></script>
+
+</head>
+<body class="bg-gray-100 min-h-screen text-slate-800">
+
+    <!-- AUTHENTICATION OVERLAY (Login & 2FA) -->
+    <div id="authOverlay" class="fixed inset-0 bg-truespec-navy z-50 flex items-center justify-center flex-col">
+        <div class="mb-8 text-center">
+            <h1 class="text-4xl font-extrabold text-white uppercase tracking-widest">TrueSpec Admin</h1>
+            <p class="text-blue-300 tracking-widest text-sm mt-2 uppercase">Secure Access Only</p>
+        </div>
+        
+        <!-- Login Form -->
+        <div id="loginFormContainer" class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-sm">
+            <form id="adminLoginForm" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Admin Email</label>
+                    <input type="email" id="adminEmail" required class="w-full border-gray-300 border p-3 rounded focus:ring-truespec-navy focus:border-truespec-navy">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Password</label>
+                    <input type="password" id="adminPassword" required class="w-full border-gray-300 border p-3 rounded focus:ring-truespec-navy focus:border-truespec-navy">
+                </div>
+                <button type="submit" id="loginBtn" class="w-full bg-truespec-navy text-white font-bold py-3 rounded hover:bg-blue-900 transition uppercase tracking-widest">Login</button>
+            </form>
+        </div>
+
+        <!-- 2FA OTP Form (Hidden initially) -->
+        <div id="otpFormContainer" class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-sm hidden">
+            <h3 class="text-xl font-bold text-truespec-navy text-center mb-2 uppercase">Verify Login</h3>
+            <p class="text-sm text-gray-500 text-center mb-6">A 6-digit OTP has been sent to your email.</p>
+            <form id="adminOtpForm" class="space-y-4">
+                <div>
+                    <input type="text" id="adminOtp" maxlength="6" required placeholder="000000" class="w-full border-gray-300 border p-3 rounded text-center text-2xl tracking-widest font-mono focus:ring-truespec-navy">
+                </div>
+                <button type="submit" id="otpBtn" class="w-full bg-truespec-amber text-white font-bold py-3 rounded hover:bg-yellow-600 transition uppercase tracking-widest">Verify & Enter</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MAIN ADMIN PORTAL (Hidden until authenticated) -->
+    <div id="portalContent" class="hidden">
+        
+        <!-- Navbar -->
+        <nav class="bg-white shadow-sm border-b border-gray-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16">
+                    <div class="flex items-center">
+                        <span class="font-bold text-xl tracking-tight text-truespec-navy uppercase">TrueSpec <span class="text-red-600">Admin</span></span>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <span class="text-xs font-bold text-gray-500 uppercase tracking-widest" id="adminNameDisplay"></span>
+                        <button onclick="logoutAdmin()" class="text-xs font-bold text-red-600 hover:text-red-800 uppercase tracking-widest">Logout</button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+            
+            <!-- Tabs -->
+            <div class="flex space-x-4 mb-8 border-b border-gray-300 pb-2">
+                <button onclick="switchTab('dashboard')" class="tab-btn active-tab px-4 py-2 font-bold text-sm uppercase tracking-widest text-truespec-navy border-b-2 border-truespec-navy">Dashboard</button>
+                <button onclick="switchTab('manualBooking')" class="tab-btn px-4 py-2 font-bold text-sm uppercase tracking-widest text-gray-400 hover:text-gray-600">Manual Booking</button>
+            </div>
+
+            <!-- TAB: Dashboard -->
+            <div id="tab-dashboard" class="tab-content">
+                <div class="bg-white rounded-lg shadow border border-gray-200 overflow-hidden">
+                    <table class="min-w-full text-sm text-left">
+                        <thead class="bg-slate-50 text-gray-500 uppercase tracking-wider text-xs font-bold">
+                            <tr>
+                                <th class="px-6 py-4">Ref / Date</th>
+                                <th class="px-6 py-4">Client</th>
+                                <th class="px-6 py-4">Vehicle</th>
+                                <th class="px-6 py-4">Status</th>
+                                <th class="px-6 py-4 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bookingsTableBody" class="divide-y divide-gray-100">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB: Manual Booking -->
+            <div id="tab-manualBooking" class="tab-content hidden max-w-2xl mx-auto bg-white p-8 rounded-lg shadow border border-gray-200">
+                <h2 class="text-xl font-bold text-truespec-navy uppercase tracking-widest border-b pb-2 mb-6">Create Booking</h2>
+                <form id="manualBookingForm" class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <input type="text" id="mbName" placeholder="Client Name *" required class="border p-2 rounded">
+                        <input type="email" id="mbEmail" placeholder="Client Email *" required class="border p-2 rounded">
+                        <input type="text" id="mbPhone" placeholder="Phone *" required class="border p-2 rounded">
+                        <input type="text" id="mbPreferredDate" placeholder="Preferred Date *" required class="border p-2 rounded">
+                    </div>
+                    <div class="grid grid-cols-3 gap-4 border-t pt-4">
+                        <input type="text" id="mbMake" placeholder="Make *" required class="border p-2 rounded">
+                        <input type="text" id="mbModel" placeholder="Model *" required class="border p-2 rounded">
+                        <input type="number" id="mbYear" placeholder="Year *" required class="border p-2 rounded">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <select id="mbType" required class="border p-2 rounded bg-white">
+                            <option value="">Select Plan...</option>
+                            <option value="Small Car (10k)">Small Car (10k)</option>
+                            <option value="Large/SUV (15k)">Large/SUV (15k)</option>
+                        </select>
+                        <input type="text" id="mbSeller" placeholder="Seller Name *" required class="border p-2 rounded">
+                    </div>
+                    <textarea id="mbLocation" placeholder="Location Description *" required rows="2" class="w-full border p-2 rounded"></textarea>
+                    
+                    <button type="submit" class="w-full bg-truespec-navy text-white font-bold py-3 rounded uppercase tracking-widest mt-4 hover:bg-blue-900">Create Booking</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Upload Documents -->
+    <div id="uploadModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50">
+        <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
+            <h3 class="text-xl font-bold text-truespec-navy uppercase tracking-widest mb-4">Upload Inspection</h3>
+            <p class="text-sm text-gray-500 mb-6">Uploading locks the report and bills the client.</p>
+            <input type="hidden" id="uploadBookingId">
+            <form id="uploadDocsForm" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Final Invoice Amount (KES)</label>
+                    <input type="number" id="uploadPrice" required class="w-full border p-2 rounded">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Report PDF</label>
+                    <input type="file" id="uploadReport" accept="application/pdf" required class="w-full border p-2 rounded bg-gray-50">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Invoice PDF</label>
+                    <input type="file" id="uploadInvoice" accept="application/pdf" required class="w-full border p-2 rounded bg-gray-50">
+                </div>
+                <div class="flex justify-end space-x-3 pt-4 border-t">
+                    <button type="button" onclick="closeModal('uploadModal')" class="px-4 py-2 bg-gray-200 text-gray-700 font-bold rounded uppercase text-xs">Cancel</button>
+                    <button type="submit" id="btnUploadSubmit" class="px-4 py-2 bg-truespec-amber text-white font-bold rounded uppercase text-xs">Upload & Bill</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: Verify Payment -->
+    <div id="verifyModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50">
+        <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
+            <h3 class="text-xl font-bold text-truespec-navy uppercase tracking-widest mb-4">Verify Payment</h3>
+            <input type="hidden" id="verifyBookingId">
+            
+            <div class="bg-slate-50 p-4 border rounded mb-6">
+                <span class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Transaction Code</span>
+                <p id="verifyTxCode" class="font-mono text-lg font-bold text-gray-900">-</p>
+                
+                <div id="verifyScreenshotContainer" class="mt-4 hidden border-t pt-4">
+                    <span class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Screenshot</span>
+                    <a id="verifyScreenshotLink" href="#" target="_blank" class="text-truespec-sky font-bold text-sm uppercase tracking-widest hover:underline">View Uploaded File</a>
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-3 pt-4 border-t">
+                <button type="button" onclick="closeModal('verifyModal')" class="px-4 py-2 bg-gray-200 text-gray-700 font-bold rounded uppercase text-xs">Cancel</button>
+                <button type="button" onclick="confirmPayment()" id="btnVerifySubmit" class="px-4 py-2 bg-green-600 text-white font-bold rounded uppercase text-xs hover:bg-green-700">Approve & Unlock</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="admin-portal.js"></script>
+</body>
+</html>

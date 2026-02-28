@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Client Portal - TrueSpec Automotive</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        truespec: {
+                            navy: '#1e3a8a',
+                            sky: '#0284c7',
+                            grey: '#64748b',
+                            light: '#f8fafc',
+                            amber: '#f59e0b'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="config.js"></script>
+
+</head>
+<body class="bg-truespec-light min-h-screen">
+
+    <!-- Navbar -->
+    <nav class="bg-truespec-navy shadow-lg border-b border-blue-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <a href="index.html" class="flex items-center">
+                    <img class="h-10 w-auto mr-3" src="images/logo.png" alt="TrueSpec Logo" onerror="this.style.display='none'">
+                    <span class="font-bold text-xl tracking-tight text-white uppercase">TrueSpec <span class="text-blue-300 font-light">Portal</span></span>
+                </a>
+                <div class="flex items-center space-x-6">
+                    <span id="user-greeting" class="hidden md:block text-sm font-bold text-blue-100 uppercase tracking-widest">Hello, Client</span>
+                    <button onclick="logout()" class="text-xs font-bold text-white bg-blue-800 hover:bg-blue-900 px-4 py-2 rounded shadow transition uppercase tracking-wide">Logout</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="max-w-5xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
+        
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-8 border-b pb-4">
+            <h1 class="text-3xl font-extrabold text-gray-900 uppercase tracking-wide">My Inspections</h1>
+            <a href="book.html" class="bg-truespec-amber text-white px-6 py-2.5 rounded text-sm font-bold hover:bg-yellow-600 shadow transition uppercase tracking-wide">
+                + New Booking
+            </a>
+        </div>
+
+        <div id="app-content" class="space-y-12">
+            <!-- Loading State -->
+            <div class="flex justify-center py-20">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-truespec-navy"></div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- MODAL: Request Password Change (Optional, if temp password) -->
+    <div id="passwordModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50">
+        <div class="bg-white p-8 rounded-lg shadow-xl max-w-sm w-full">
+            <h3 class="text-xl font-bold text-truespec-navy mb-2 uppercase">Update Password</h3>
+            <p class="text-sm text-gray-500 mb-6">You are using a temporary password. Please secure your account.</p>
+            <input type="password" id="newPassword" placeholder="New Password" class="w-full border-gray-300 border p-3 rounded mb-4 focus:ring-truespec-sky">
+            <button onclick="updatePassword()" class="w-full bg-truespec-navy text-white font-bold py-3 rounded hover:bg-blue-900 uppercase">Save Password</button>
+        </div>
+    </div>
+
+    <script src="dashboard.js"></script>
+</body>
+</html>
