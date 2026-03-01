@@ -23,6 +23,9 @@
         }
     </script>
     <script src="config.js"></script>
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
 
 </head>
 <body class="bg-truespec-light min-h-screen">
@@ -72,6 +75,62 @@
             <button onclick="updatePassword()" class="w-full bg-truespec-navy text-white font-bold py-3 rounded hover:bg-blue-900 uppercase">Save Password</button>
         </div>
     </div>
+
+
+        <!-- MODAL: View Full Booking Details (User) -->
+    <div id="clientDetailsModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col">
+            <!-- Header -->
+            <div class="p-6 border-b border-gray-200 flex justify-between items-center bg-slate-50 rounded-t-lg">
+                <h3 class="text-xl font-bold text-truespec-navy uppercase tracking-widest">Inspection Details</h3>
+                <button onclick="closeClientDetailsModal()" class="text-gray-400 hover:text-red-500 font-bold text-xl">&times;</button>
+            </div>
+            <!-- Scrollable Content -->
+            <div class="p-6 overflow-y-auto flex-1 space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+                    <!-- Vehicle Info -->
+                    <div>
+                        <h4 class="font-bold text-xs text-gray-400 uppercase tracking-widest border-b pb-1 mb-2">Vehicle Info</h4>
+                        <p><span class="font-bold">Make & Model:</span> <span id="cDetVehicle"></span></p>
+                        <p><span class="font-bold">Year:</span> <span id="cDetYear"></span></p>
+                        <p><span class="font-bold">Reg Number:</span> <span id="cDetReg"></span></p>
+                        <p><span class="font-bold">Plan:</span> <span id="cDetPlan"></span></p>
+                    </div>
+                    <!-- Logistics -->
+                    <div>
+                        <h4 class="font-bold text-xs text-gray-400 uppercase tracking-widest border-b pb-1 mb-2">Logistics</h4>
+                        <p><span class="font-bold">Seller Name:</span> <span id="cDetSeller"></span></p>
+                        <p><span class="font-bold">Location:</span> <span id="cDetLocation"></span></p>
+                        <p><span class="font-bold">Preferred Date:</span> <span id="cDetDate"></span></p>
+                    </div>
+                    <!-- Notes -->
+                    <div class="md:col-span-2">
+                        <h4 class="font-bold text-xs text-gray-400 uppercase tracking-widest border-b pb-1 mb-2">Your Notes</h4>
+                        <p id="cDetNotes" class="bg-gray-50 p-3 rounded border border-gray-200 text-gray-600"></p>
+                    </div>
+                                        <!-- Map Display -->
+                    <div class="md:col-span-2">
+                        <h4 class="font-bold text-xs text-gray-400 uppercase tracking-widest border-b pb-1 mb-2">Pinned Location</h4>
+                        <div id="cDetMapContainer" class="w-full h-64 bg-gray-100 border border-gray-300 rounded relative z-0 hidden"></div>
+                        <p id="cDetNoMapMsg" class="text-xs italic text-gray-400 hidden mt-1">No map coordinates provided.</p>
+                    </div>
+
+                    <!-- Uploaded Photos -->
+                    <div class="md:col-span-2">
+                        <h4 class="font-bold text-xs text-gray-400 uppercase tracking-widest border-b pb-1 mb-3">Attached Photos</h4>
+                        <div id="cDetPhotos" class="flex flex-wrap gap-3">
+                            <!-- Populated via JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Footer -->
+            <div class="p-4 border-t border-gray-200 bg-gray-50 rounded-b-lg text-right">
+                <button onclick="closeClientDetailsModal()" class="px-6 py-2 bg-gray-200 text-gray-700 font-bold rounded uppercase text-xs hover:bg-gray-300">Close</button>
+            </div>
+        </div>
+    </div>
+
 
     <script src="dashboard.js"></script>
 </body>

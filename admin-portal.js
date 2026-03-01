@@ -1,6 +1,7 @@
 let adminToken = localStorage.getItem('adminToken');
 let adminUser = JSON.parse(localStorage.getItem('adminUser'));
 let currentAuthEmail = '';
+let globalAdminBookings = [];
 
 if (adminToken && adminUser && adminUser.role === 'admin') {
     document.getElementById('authOverlay').classList.add('hidden');
@@ -84,16 +85,19 @@ async function adminFetch(url, options = {}) {
     return res;
 }
 
+// --- UPDATE THE FETCH FUNCTION ---
 async function fetchAdminData() {
     try {
         const res = await adminFetch(API_BASE_URL + '/api/data/dashboard');
         const data = await res.json();
+        globalAdminBookings = data.bookings; // Store locally for the modal
         renderTable(data.bookings);
     } catch (err) {
         console.error("Failed to fetch dashboard data");
     }
 }
 
+// --- UPDATE THE RENDER TABLE FUNCTION ---
 function renderTable(bookings) {
     const tbody = document.getElementById('bookingsTableBody');
     tbody.innerHTML = bookings.map(b => {
@@ -116,8 +120,12 @@ function renderTable(bookings) {
                     ${formatStatus(b.status)}
                 </span>
             </td>
+            <!-- UPDATED ACTION COLUMN -->
             <td class="px-6 py-4 text-right">
-                ${renderActionButton(b)}
+                <div class="flex justify-end items-center space-x-2">
+                    <button onclick="openDetailsModal('${b._id}')" class="px-3 py-1.5 border border-gray-300 text-gray-600 hover:text-truespec-navy text-xs font-bold uppercase tracking-widest rounded shadow-sm hover:bg-gray-50">View</button>
+                    ${renderActionButton(b)}
+                </div>
             </td>
         </tr>`;
     }).join('');
@@ -236,3 +244,214 @@ function switchTab(tabId) {
         activeBtn.classList.remove('text-gray-400'); activeBtn.classList.add('text-truespec-navy', 'border-b-2', 'border-truespec-navy');
     }
 }
+
+
+function togglePasswordVisibility(inputId, eyeIconId, eyeSlashIconId) {
+    const input = document.getElementById(inputId);
+    const eyeIcon = document.getElementById(eyeIconId);
+    const eyeSlashIcon = document.getElementById(eyeSlashIconId);
+    
+    if (input.type === "password") {
+        input.type = "text";
+        eyeIcon.classList.add("hidden");
+        eyeSlashIcon.classList.remove("hidden");
+    } else {
+        input.type = "password";
+        eyeIcon.classList.remove("hidden");
+        eyeSlashIcon.classList.add("hidden");
+    }
+}
+
+
+// --- FORGOT PASSWORD FLOW ---
+let resetEmail = '';
+
+function showForgotForm() {
+    document.getElementById('loginFormContainer').classList.add('hidden');
+    document.getElementById('forgotPasswordContainer').classList.remove('hidden');
+}
+
+function showLoginForm() {
+    document.getElementById('forgotPasswordContainer').classList.add('hidden');
+    document.getElementById('resetPasswordContainer').classList.add('hidden');
+    document.getElementById('loginFormContainer').classList.remove('hidden');
+}
+
+// 1. Request the code
+document.getElementById('adminForgotForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('forgotEmail').value;
+    const btn = document.getElementById('forgotBtn');
+    btn.disabled = true; btn.innerText = "Sending...";
+
+    try {
+        const res = await fetch(API_BASE_URL + '/api/auth/forgot-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+        });
+        const data = await res.json();
+        
+        if (res.ok) {
+            resetEmail = email;
+            document.getElementById('forgotPasswordContainer').classList.add('hidden');
+            document.getElementById('resetPasswordContainer').classList.remove('hidden');
+        } else {
+            alert(data.message || 'Error sending reset email.');
+        }
+    } catch (err) {
+        console.error(err); alert("Network error.");
+    } finally {
+        btn.disabled = false; btn.innerText = "Send Code";
+    }
+});
+
+// 2. Submit the new password with the code
+document.getElementById('adminResetForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const code = document.getElementById('resetCode').value;
+    const newPassword = document.getElementById('newAdminPassword').value;
+    const btn = document.getElementById('resetBtn');
+    
+    if(newPassword.length < 6) {
+        alert("Password must be at least 6 characters.");
+        return;
+    }
+
+    btn.disabled = true; btn.innerText = "Resetting...";
+
+    try {
+        const res = await fetch(API_BASE_URL + '/api/auth/reset-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: resetEmail, code, newPassword })
+        });
+        const data = await res.json();
+        
+        if (res.ok) {
+            alert('Password reset successful! You can now log in.');
+            document.getElementById('adminLoginForm').reset();
+            showLoginForm();
+        } else {
+            alert(data.message || 'Invalid or expired code.');
+        }
+    } catch (err) {
+        console.error(err); alert("Network error.");
+    } finally {
+        btn.disabled = false; btn.innerText = "Reset Password";
+    }
+});
+
+// --- ADD THE MODAL LOGIC (Paste at the bottom of the file) ---
+function openDetailsModal(id) {
+    const b = globalAdminBookings.find(x => x._id === id);
+    if (!b) return;
+
+    // Populate Fields
+    document.getElementById('detName').innerText = b.name || '-';
+    document.getElementById('detEmail').innerText = b.email || '-';
+    document.getElementById('detPhone').innerText = b.phone || '-';
+    document.getElementById('detWhatsApp').innerText = b.whatsapp || 'N/A';
+    
+    document.getElementById('detVehicle').innerText = `${b.make} ${b.model}`;
+    document.getElementById('detYear').innerText = b.year || '-';
+    document.getElementById('detReg').innerText = b.registrationNumber || 'N/A';
+    document.getElementById('detPlan').innerText = b.inspectionType || '-';
+
+    document.getElementById('detSeller').innerText = b.sellerName || '-';
+    document.getElementById('detLocation').innerText = b.locationText || '-';
+    document.getElementById('detDate').innerText = b.preferredDate || '-';
+    document.getElementById('detNotes').innerText = b.notes || 'None';
+
+    // Populate Photos
+    const photoContainer = document.getElementById('detPhotos');
+    if (b.photos && b.photos.length > 0) {
+        photoContainer.innerHTML = b.photos.map((photoKey, index) => `
+            <a href="${API_BASE_URL}/api/data/files/${photoKey}?token=${adminToken}" target="_blank" 
+               class="px-4 py-2 bg-blue-50 border border-blue-200 text-truespec-sky text-xs font-bold uppercase tracking-widest rounded hover:bg-blue-100 flex items-center">
+                <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                </svg>
+                View File ${index + 1}
+            </a>
+        `).join('');
+    } else {
+        photoContainer.innerHTML = `<span class="text-gray-400 italic text-xs">No photos attached.</span>`;
+    }
+
+    document.getElementById('detailsModal').classList.remove('hidden');
+}
+
+
+
+// --- MAP VARIABLES ---
+let adminDetailsMap = null;
+let adminDetailsMarker = null;
+
+function openDetailsModal(id) {
+    const b = globalAdminBookings.find(x => x._id === id);
+    if (!b) return;
+
+    // Populate Fields
+    document.getElementById('detName').innerText = b.name || '-';
+    document.getElementById('detEmail').innerText = b.email || '-';
+    document.getElementById('detPhone').innerText = b.phone || '-';
+    document.getElementById('detWhatsApp').innerText = b.whatsapp || 'N/A';
+    
+    document.getElementById('detVehicle').innerText = `${b.make} ${b.model}`;
+    document.getElementById('detYear').innerText = b.year || '-';
+    document.getElementById('detReg').innerText = b.registrationNumber || 'N/A';
+    document.getElementById('detPlan').innerText = b.inspectionType || '-';
+
+    document.getElementById('detSeller').innerText = b.sellerName || '-';
+    document.getElementById('detLocation').innerText = b.locationText || '-';
+    document.getElementById('detDate').innerText = b.preferredDate || '-';
+    document.getElementById('detNotes').innerText = b.notes || 'None';
+
+    // Populate Photos
+    const photoContainer = document.getElementById('detPhotos');
+    if (b.photos && b.photos.length > 0) {
+        photoContainer.innerHTML = b.photos.map((photoKey, index) => `
+            <a href="${API_BASE_URL}/api/data/files/${photoKey}?token=${adminToken}" target="_blank" 
+               class="px-4 py-2 bg-blue-50 border border-blue-200 text-truespec-sky text-xs font-bold uppercase tracking-widest rounded hover:bg-blue-100 flex items-center">
+                <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                </svg>
+                View File ${index + 1}
+            </a>
+        `).join('');
+    } else {
+        photoContainer.innerHTML = `<span class="text-gray-400 italic text-xs">No photos attached.</span>`;
+    }
+
+    // --- RENDER MAP ---
+    const mapContainer = document.getElementById('detMapContainer');
+    const noMapMsg = document.getElementById('detNoMapMsg');
+    
+    if (b.mapCoordinates && b.mapCoordinates.lat && b.mapCoordinates.lng) {
+        mapContainer.classList.remove('hidden');
+        noMapMsg.classList.add('hidden');
+        
+        const lat = b.mapCoordinates.lat;
+        const lng = b.mapCoordinates.lng;
+
+        if (!adminDetailsMap) {
+            adminDetailsMap = L.map('detMapContainer').setView([lat, lng], 15);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(adminDetailsMap);
+            adminDetailsMarker = L.marker([lat, lng]).addTo(adminDetailsMap);
+        } else {
+            adminDetailsMap.setView([lat, lng], 15);
+            adminDetailsMarker.setLatLng([lat, lng]);
+        }
+        
+        // Timeout needed for Leaflet maps hidden inside modals to size correctly
+        setTimeout(() => adminDetailsMap.invalidateSize(), 100);
+    } else {
+        mapContainer.classList.add('hidden');
+        noMapMsg.classList.remove('hidden');
+    }
+
+    document.getElementById('detailsModal').classList.remove('hidden');
+}
+
+

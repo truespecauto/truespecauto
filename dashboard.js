@@ -1,6 +1,8 @@
+
 // --- Global State & Init ---
 const token = localStorage.getItem('token');
 const user = JSON.parse(localStorage.getItem('user'));
+let globalClientBookings = [];
 
 if (!token || !user) {
     window.location.href = 'login.html';
@@ -24,6 +26,7 @@ async function fetchDashboardData() {
         if (!res.ok) throw new Error('Failed to fetch data');
         const data = await res.json();
         
+        globalClientBookings = data.bookings; // Store locally for modal
         renderClientDashboard(data.bookings);
 
     } catch (err) {
@@ -58,7 +61,7 @@ function renderClientDashboard(bookings) {
         html += `
         <div class="mt-16">
             <h2 class="text-xl font-bold text-truespec-navy uppercase tracking-widest border-b pb-2 mb-6">Inspection History</h2>
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden" style="overflow-x: auto;">
                 <table class="min-w-full text-sm text-left">
                     <thead class="bg-slate-50 text-gray-500 uppercase tracking-wider text-xs font-bold">
                         <tr>
@@ -71,14 +74,8 @@ function renderClientDashboard(bookings) {
                     <tbody class="divide-y divide-gray-100">
                         ${pastBookings.map(b => `
                             <tr class="hover:bg-slate-50 transition">
-                                <td class="px-6 py-4 text-gray-600">${new Date(b.createdAt).toLocaleDateString()}</td>
-                                <td class="px-6 py-4 font-bold text-gray-900">${b.make} ${b.model} (${b.year})</td>
-                                <td class="px-6 py-4">
-                                    <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest ${b.status === 'completed_unlocked' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
-                                        ${b.status === 'completed_unlocked' ? 'Completed' : 'Cancelled'}
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4 text-right">
+                               <td class="px-6 py-4 text-right space-x-2">
+                                    <button onclick="openClientDetailsModal('${b._id}')" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-1.5 px-3 rounded uppercase tracking-wide mr-2 transition">Details</button>
                                     ${b.status === 'completed_unlocked' && b.reportPdfKey ? 
                                     `<a href="${API_BASE_URL}/api/data/files/${b.reportPdfKey}?token=${token}" target="_blank" class="text-truespec-sky font-bold hover:underline uppercase tracking-wide">Download</a>` 
                                     : '-'}
@@ -100,17 +97,16 @@ function renderActiveBookingCard(booking) {
     if (booking.status === 'completed_unlocked') step = 4;
 
     return `
-    <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden mb-8">
-        <div class="bg-slate-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+      <div class="bg-slate-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
             <div>
                 <h3 class="text-xl font-bold text-gray-900 uppercase tracking-wide">${booking.make} ${booking.model} <span class="text-gray-500 font-normal">(${booking.year})</span></h3>
                 <p class="text-xs text-gray-500 mt-1 uppercase tracking-widest">Ref: ${booking._id.substring(0,8)} | Location: ${booking.sellerName}</p>
             </div>
-            <div class="text-right">
-                <span class="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-1">Status</span>
-                <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest bg-blue-100 text-blue-800">
+            <div class="text-right flex flex-col items-end">
+                <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest bg-blue-100 text-blue-800 mb-2">
                     ${formatStatus(booking.status)}
                 </span>
+                <button onclick="openClientDetailsModal('${booking._id}')" class="text-xs bg-white text-gray-600 border border-gray-300 hover:bg-gray-50 font-bold py-1 px-3 rounded uppercase transition">View Details</button>
             </div>
         </div>
         <div class="p-6 md:p-8">
@@ -266,6 +262,7 @@ async function updatePassword() {
             alert("Password secured successfully.");
             user.requirePasswordChange = false;
             localStorage.setItem('user', JSON.stringify(user));
+            window.location.href = 'login.html';
         } else alert("Error updating password");
     } catch (e) { console.error(e); }
 }
@@ -285,3 +282,112 @@ function logout() {
     localStorage.removeItem('user');
     window.location.href = 'login.html';
 }
+
+function openClientDetailsModal(id) {
+    const b = globalClientBookings.find(x => x._id === id);
+    if (!b) return;
+
+    // Populate Fields
+    document.getElementById('cDetVehicle').innerText = `${b.make} ${b.model}`;
+    document.getElementById('cDetYear').innerText = b.year || '-';
+    document.getElementById('cDetReg').innerText = b.registrationNumber || 'N/A';
+    document.getElementById('cDetPlan').innerText = b.inspectionType || '-';
+    
+    document.getElementById('cDetSeller').innerText = b.sellerName || '-';
+    document.getElementById('cDetLocation').innerText = b.locationText || '-';
+    document.getElementById('cDetDate').innerText = b.preferredDate || '-';
+    document.getElementById('cDetNotes').innerText = b.notes || 'No specific notes provided.';
+
+    // Populate Photos
+    const photoContainer = document.getElementById('cDetPhotos');
+    if (b.photos && b.photos.length > 0) {
+        photoContainer.innerHTML = b.photos.map((photoKey, index) => `
+            <a href="${API_BASE_URL}/api/data/files/${photoKey}?token=${token}" target="_blank" 
+               class="px-4 py-2 bg-blue-50 border border-blue-200 text-truespec-sky text-xs font-bold uppercase tracking-widest rounded hover:bg-blue-100 flex items-center">
+                <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                </svg>
+                View Attachment ${index + 1}
+            </a>
+        `).join('');
+    } else {
+        photoContainer.innerHTML = `<span class="text-gray-400 italic text-xs">No photos attached.</span>`;
+    }
+
+    document.getElementById('clientDetailsModal').classList.remove('hidden');
+}
+
+function closeClientDetailsModal() {
+    document.getElementById('clientDetailsModal').classList.add('hidden');
+}
+
+
+// --- MAP VARIABLES ---
+let clientDetailsMap = null;
+let clientDetailsMarker = null;
+
+function openClientDetailsModal(id) {
+    const b = globalClientBookings.find(x => x._id === id);
+    if (!b) return;
+
+    // Populate Fields
+    document.getElementById('cDetVehicle').innerText = `${b.make} ${b.model}`;
+    document.getElementById('cDetYear').innerText = b.year || '-';
+    document.getElementById('cDetReg').innerText = b.registrationNumber || 'N/A';
+    document.getElementById('cDetPlan').innerText = b.inspectionType || '-';
+    
+    document.getElementById('cDetSeller').innerText = b.sellerName || '-';
+    document.getElementById('cDetLocation').innerText = b.locationText || '-';
+    document.getElementById('cDetDate').innerText = b.preferredDate || '-';
+    document.getElementById('cDetNotes').innerText = b.notes || 'No specific notes provided.';
+
+    // Populate Photos
+    const photoContainer = document.getElementById('cDetPhotos');
+    if (b.photos && b.photos.length > 0) {
+        photoContainer.innerHTML = b.photos.map((photoKey, index) => `
+            <a href="${API_BASE_URL}/api/data/files/${photoKey}?token=${token}" target="_blank" 
+               class="px-4 py-2 bg-blue-50 border border-blue-200 text-truespec-sky text-xs font-bold uppercase tracking-widest rounded hover:bg-blue-100 flex items-center">
+                <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                </svg>
+                View Attachment ${index + 1}
+            </a>
+        `).join('');
+    } else {
+        photoContainer.innerHTML = `<span class="text-gray-400 italic text-xs">No photos attached.</span>`;
+    }
+
+    // --- RENDER MAP ---
+    const mapContainer = document.getElementById('cDetMapContainer');
+    const noMapMsg = document.getElementById('cDetNoMapMsg');
+    
+    if (b.mapCoordinates && b.mapCoordinates.lat && b.mapCoordinates.lng) {
+        mapContainer.classList.remove('hidden');
+        noMapMsg.classList.add('hidden');
+        
+        const lat = b.mapCoordinates.lat;
+        const lng = b.mapCoordinates.lng;
+
+        if (!clientDetailsMap) {
+            clientDetailsMap = L.map('cDetMapContainer').setView([lat, lng], 15);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(clientDetailsMap);
+            clientDetailsMarker = L.marker([lat, lng]).addTo(clientDetailsMap);
+        } else {
+            clientDetailsMap.setView([lat, lng], 15);
+            clientDetailsMarker.setLatLng([lat, lng]);
+        }
+        
+        // Timeout needed for Leaflet maps hidden inside modals to size correctly
+        setTimeout(() => clientDetailsMap.invalidateSize(), 100);
+    } else {
+        mapContainer.classList.add('hidden');
+        noMapMsg.classList.remove('hidden');
+    }
+
+    document.getElementById('clientDetailsModal').classList.remove('hidden');
+}
+
+function closeClientDetailsModal() {
+    document.getElementById('clientDetailsModal').classList.add('hidden');
+}
+

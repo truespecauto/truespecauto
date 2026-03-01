@@ -17,13 +17,19 @@
         }
     </script>
     <script src="config.js"></script>
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
 
 </head>
 <body class="bg-gray-100 min-h-screen text-slate-800">
 
     <!-- AUTHENTICATION OVERLAY (Login & 2FA) -->
+        <!-- AUTHENTICATION OVERLAY (Login & 2FA) -->
     <div id="authOverlay" class="fixed inset-0 bg-truespec-navy z-50 flex items-center justify-center flex-col">
-        <div class="mb-8 text-center">
+        <div class="mb-8 text-center flex flex-col items-center">
+            <!-- Logo -->
+            <img src="images/logo.png" alt="TrueSpec Logo" class="h-20 w-auto mb-5 bg-white p-3 rounded-xl shadow-lg" onerror="this.style.display='none'">
             <h1 class="text-4xl font-extrabold text-white uppercase tracking-widest">TrueSpec Admin</h1>
             <p class="text-blue-300 tracking-widest text-sm mt-2 uppercase">Secure Access Only</p>
         </div>
@@ -36,10 +42,25 @@
                     <input type="email" id="adminEmail" required class="w-full border-gray-300 border p-3 rounded focus:ring-truespec-navy focus:border-truespec-navy">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Password</label>
-                    <input type="password" id="adminPassword" required class="w-full border-gray-300 border p-3 rounded focus:ring-truespec-navy focus:border-truespec-navy">
+                    <div class="flex justify-between mb-1">
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest">Password</label>
+                        <button type="button" onclick="showForgotForm()" class="text-xs font-bold text-truespec-sky hover:text-truespec-navy uppercase tracking-widest">Forgot?</button>
+                    </div>
+                    <!-- Password Toggle -->
+                    <div class="relative">
+                        <input type="password" id="adminPassword" required class="w-full border-gray-300 border p-3 rounded focus:ring-truespec-navy focus:border-truespec-navy pr-10">
+                        <button type="button" onclick="togglePasswordVisibility('adminPassword', 'eyeIconAdmin', 'eyeSlashIconAdmin')" class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-truespec-navy focus:outline-none">
+                            <svg id="eyeIconAdmin" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                            <svg id="eyeSlashIconAdmin" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.05 10.05 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.05 10.05 0 01-3.772 4.772m0 0L21 21" />
+                            </svg>
+                        </button>
+                    </div>
                 </div>
-                <button type="submit" id="loginBtn" class="w-full bg-truespec-navy text-white font-bold py-3 rounded hover:bg-blue-900 transition uppercase tracking-widest">Login</button>
+                <button type="submit" id="loginBtn" class="w-full bg-truespec-navy text-white font-bold py-3 rounded hover:bg-blue-900 transition uppercase tracking-widest mt-2">Login</button>
             </form>
         </div>
 
@@ -54,7 +75,38 @@
                 <button type="submit" id="otpBtn" class="w-full bg-truespec-amber text-white font-bold py-3 rounded hover:bg-yellow-600 transition uppercase tracking-widest">Verify & Enter</button>
             </form>
         </div>
+
+        <!-- Forgot Password Form (Hidden initially) -->
+        <div id="forgotPasswordContainer" class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-sm hidden">
+            <h3 class="text-xl font-bold text-truespec-navy text-center mb-2 uppercase">Reset Password</h3>
+            <p class="text-sm text-gray-500 text-center mb-6">Enter your email to receive a reset code.</p>
+            <form id="adminForgotForm" class="space-y-4">
+                <div>
+                    <input type="email" id="forgotEmail" required placeholder="Admin Email" class="w-full border-gray-300 border p-3 rounded focus:ring-truespec-navy">
+                </div>
+                <button type="submit" id="forgotBtn" class="w-full bg-truespec-navy text-white font-bold py-3 rounded hover:bg-blue-900 transition uppercase tracking-widest">Send Code</button>
+                <div class="text-center mt-4">
+                    <button type="button" onclick="showLoginForm()" class="text-xs font-bold text-gray-500 hover:text-truespec-navy uppercase tracking-widest">Back to Login</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Reset Password Form (Hidden initially) -->
+        <div id="resetPasswordContainer" class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-sm hidden">
+            <h3 class="text-xl font-bold text-truespec-navy text-center mb-2 uppercase">Create New Password</h3>
+            <p class="text-sm text-gray-500 text-center mb-6">Enter the 6-digit code sent to your email.</p>
+            <form id="adminResetForm" class="space-y-4">
+                <div>
+                    <input type="text" id="resetCode" maxlength="6" required placeholder="6-Digit Code" class="w-full border-gray-300 border p-3 rounded text-center text-2xl tracking-widest font-mono focus:ring-truespec-navy">
+                </div>
+                <div>
+                    <input type="password" id="newAdminPassword" required placeholder="New Password" class="w-full border-gray-300 border p-3 rounded focus:ring-truespec-navy">
+                </div>
+                <button type="submit" id="resetBtn" class="w-full bg-truespec-amber text-white font-bold py-3 rounded hover:bg-yellow-600 transition uppercase tracking-widest">Reset Password</button>
+            </form>
+        </div>
     </div>
+
 
     <!-- MAIN ADMIN PORTAL (Hidden until authenticated) -->
     <div id="portalContent" class="hidden">
@@ -84,7 +136,7 @@
 
             <!-- TAB: Dashboard -->
             <div id="tab-dashboard" class="tab-content">
-                <div class="bg-white rounded-lg shadow border border-gray-200 overflow-hidden">
+                <div class="bg-white rounded-lg shadow border border-gray-200 overflow-hidden" style="overflow-x: auto;">
                     <table class="min-w-full text-sm text-left">
                         <thead class="bg-slate-50 text-gray-500 uppercase tracking-wider text-xs font-bold">
                             <tr>
@@ -182,6 +234,66 @@
             </div>
         </div>
     </div>
+
+        <!-- MODAL: View Full Booking Details -->
+    <div id="detailsModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col">
+            <!-- Header -->
+            <div class="p-6 border-b border-gray-200 flex justify-between items-center bg-slate-50 rounded-t-lg">
+                <h3 class="text-xl font-bold text-truespec-navy uppercase tracking-widest">Booking Details</h3>
+                <button onclick="closeModal('detailsModal')" class="text-gray-400 hover:text-red-500 font-bold text-xl">&times;</button>
+            </div>
+            <!-- Scrollable Content -->
+            <div class="p-6 overflow-y-auto flex-1 space-y-6">
+                <!-- Grid Layout -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+                    <!-- Client Info -->
+                    <div>
+                        <h4 class="font-bold text-xs text-gray-400 uppercase tracking-widest border-b pb-1 mb-2">Client Info</h4>
+                        <p><span class="font-bold">Name:</span> <span id="detName"></span></p>
+                        <p><span class="font-bold">Email:</span> <span id="detEmail"></span></p>
+                        <p><span class="font-bold">Phone:</span> <span id="detPhone"></span></p>
+                        <p><span class="font-bold">WhatsApp:</span> <span id="detWhatsApp"></span></p>
+                    </div>
+                    <!-- Vehicle Info -->
+                    <div>
+                        <h4 class="font-bold text-xs text-gray-400 uppercase tracking-widest border-b pb-1 mb-2">Vehicle Info</h4>
+                        <p><span class="font-bold">Make & Model:</span> <span id="detVehicle"></span></p>
+                        <p><span class="font-bold">Year:</span> <span id="detYear"></span></p>
+                        <p><span class="font-bold">Reg Number:</span> <span id="detReg"></span></p>
+                        <p><span class="font-bold">Plan:</span> <span id="detPlan"></span></p>
+                    </div>
+                    <!-- Logistics -->
+                    <div class="md:col-span-2">
+                        <h4 class="font-bold text-xs text-gray-400 uppercase tracking-widest border-b pb-1 mb-2">Logistics</h4>
+                        <p><span class="font-bold">Seller Name:</span> <span id="detSeller"></span></p>
+                        <p><span class="font-bold">Location:</span> <span id="detLocation"></span></p>
+                        <p><span class="font-bold">Preferred Date:</span> <span id="detDate"></span></p>
+                        <p><span class="font-bold">Notes:</span> <span id="detNotes"></span></p>
+                    </div>
+                                        <!-- Map Display -->
+                    <div class="md:col-span-2">
+                        <h4 class="font-bold text-xs text-gray-400 uppercase tracking-widest border-b pb-1 mb-2">Pinned Location</h4>
+                        <div id="detMapContainer" class="w-full h-64 bg-gray-100 border border-gray-300 rounded relative z-0 hidden"></div>
+                        <p id="detNoMapMsg" class="text-xs italic text-gray-400 hidden mt-1">No map coordinates provided.</p>
+                    </div>
+
+                    <!-- Uploaded Photos -->
+                    <div class="md:col-span-2">
+                        <h4 class="font-bold text-xs text-gray-400 uppercase tracking-widest border-b pb-1 mb-3">Client Attached Photos</h4>
+                        <div id="detPhotos" class="flex flex-wrap gap-3">
+                            <!-- Populated via JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Footer -->
+            <div class="p-4 border-t border-gray-200 bg-gray-50 rounded-b-lg text-right">
+                <button onclick="closeModal('detailsModal')" class="px-6 py-2 bg-gray-200 text-gray-700 font-bold rounded uppercase text-xs hover:bg-gray-300">Close</button>
+            </div>
+        </div>
+    </div>
+
 
     <script src="admin-portal.js"></script>
 </body>
