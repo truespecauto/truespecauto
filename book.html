@@ -24,7 +24,9 @@
     </script>
     <script src="config.js"></script>
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Replace YOUR_API_KEY with your actual Google Maps Javascript API Key -->
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBpWo_sqdTw3wjxF352nB7QXnhnxYYheDs&callback=initMap" async defer></script>
+
 
 
 </head>
@@ -187,7 +189,7 @@
                     <button type="submit" id="submitBtn" class="w-full flex justify-center py-4 px-4 border border-transparent rounded-md shadow-lg text-lg font-bold text-white bg-truespec-amber hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-truespec-amber transition transform hover:-translate-y-0.5 uppercase tracking-wide">
                         Submit Inspection Request
                     </button>
-                    <p class="text-center text-xs text-gray-400 mt-4">By submitting, you agree to TrueSpec Automotive's Terms of Service.</p>
+                    <p class="text-center text-xs text-gray-400 mt-4">By submitting, you agree to TrueSpec Automotive's <a href="tos.html" class="text-truespec-sky hover:underline">Terms of Service</a>.</p>
                 </div>
             </form>
 
@@ -213,6 +215,7 @@
 
     <script>
         // Check URL params for vehicle type (pre-filling logic from homepage pricing)
+        // Check URL params for vehicle type (pre-filling logic from homepage pricing)
         const urlParams = new URLSearchParams(window.location.search);
         const typeParam = urlParams.get('type');
         if(typeParam) {
@@ -220,6 +223,59 @@
             if(typeParam === 'small') selectField.value = 'Small Car (10k)';
             if(typeParam === 'large') selectField.value = 'Large/SUV (15k)';
         }
+
+        // --- NEW: AUTO-FILL LOGIC FOR LOGGED IN USERS ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const storedUser = localStorage.getItem('user');
+            if (storedUser) {
+                try {
+                    const userObj = JSON.parse(storedUser);
+
+                    //console.log("Auto-filling booking form with stored user data:", userObj);
+                    
+                    // Fill Name
+                    if (userObj.name) {
+                        document.getElementById('name').value = userObj.name;
+                    }
+                    
+                    // Fill and Lock Email
+                    if (userObj.email) {
+                        const emailField = document.getElementById('email');
+                        emailField.value = userObj.email;
+                        emailField.readOnly = true;
+                        
+                        // Add visual styling to indicate it's locked
+                        emailField.classList.add('bg-gray-100', 'text-gray-500', 'cursor-not-allowed');
+                        emailField.classList.remove('focus:ring-truespec-sky', 'focus:border-truespec-sky');
+                        
+                        // Optional: Add a small note to the user
+                        const emailHelperText = emailField.nextElementSibling;
+                        if(emailHelperText) {
+                            emailHelperText.innerText = "Email is locked to your current account.";
+                            emailHelperText.classList.remove('text-gray-400');
+                            emailHelperText.classList.add('text-truespec-sky', 'font-bold');
+                        }
+                    }
+
+                    if (userObj.phone) {
+                        document.getElementById('phone').value = userObj.phone;
+                        document.getElementById('phone').readOnly = true;
+                        document.getElementById('phone').classList.add('bg-gray-100', 'text-gray-500', 'cursor-not-allowed');
+                        document.getElementById('phone').classList.remove('focus:ring-truespec-sky', 'focus:border-truespec-sky');
+                    }
+
+                    if (userObj.whatsapp) {
+                        document.getElementById('whatsapp').value = userObj.whatsapp;
+                        document.getElementById('whatsapp').readOnly = true;
+                        document.getElementById('whatsapp').classList.add('bg-gray-100', 'text-gray-500', 'cursor-not-allowed');
+                        document.getElementById('whatsapp').classList.remove('focus:ring-truespec-sky', 'focus:border-truespec-sky');
+                    }
+                } catch (e) {
+                    console.error("Error parsing stored user data", e);
+                }
+            }
+        });
+        // --- END NEW AUTO-FILL LOGIC ---
 
         document.getElementById('bookingForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -290,29 +346,50 @@
             }
         });    
     </script>
-        <script>
-        // Initialize Map (Default centered on Nairobi)
-        const defaultLat = -1.2921;
-        const defaultLng = 36.8219;
+            <script>
+        // Initialize Google Map (Centered on Nairobi)
+        let map, marker;
         
-        document.getElementById('lat').value = defaultLat;
-        document.getElementById('lng').value = defaultLng;
+        function initMap() {
+            const defaultLat = -1.2921;
+            const defaultLng = 36.8219;
+            
+            document.getElementById('lat').value = defaultLat;
+            document.getElementById('lng').value = defaultLng;
 
-        const map = L.map('mapPlaceholder').setView([defaultLat, defaultLng], 12);
-        
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(map);
+            const mapOptions = {
+                zoom: 12,
+                center: { lat: defaultLat, lng: defaultLng },
+                mapTypeControl: false,
+                streetViewControl: false
+            };
+            
+            map = new google.maps.Map(document.getElementById("mapPlaceholder"), mapOptions);
 
-        const marker = L.marker([defaultLat, defaultLng], { draggable: true }).addTo(map);
+            marker = new google.maps.Marker({
+                position: { lat: defaultLat, lng: defaultLng },
+                map: map,
+                draggable: true,
+                title: "Drag to exact location",
+                animation: google.maps.Animation.DROP
+            });
 
-        // Update hidden inputs when marker is dragged
-        marker.on('dragend', function(e) {
-            const pos = marker.getLatLng();
-            document.getElementById('lat').value = pos.lat;
-            document.getElementById('lng').value = pos.lng;
-        });
+            // Update hidden inputs when marker is dragged
+            marker.addListener('dragend', function() {
+                const pos = marker.getPosition();
+                document.getElementById('lat').value = pos.lat();
+                document.getElementById('lng').value = pos.lng();
+            });
+            
+            // Allow clicking the map to move the marker
+            map.addListener('click', function(e) {
+                marker.setPosition(e.latLng);
+                document.getElementById('lat').value = e.latLng.lat();
+                document.getElementById('lng').value = e.latLng.lng();
+            });
+        }
     </script>
+
 
 </body>
 </html>

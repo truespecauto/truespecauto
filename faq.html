@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FAQ - TrueSpec Automotive</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        truespec: { navy: '#1e3a8a', sky: '#0284c7', grey: '#64748b', light: '#f8fafc', amber: '#f59e0b' }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-truespec-light min-h-screen flex flex-col">
+
+    <!-- Navbar -->
+    <nav class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-20">
+                <div class="flex items-center">
+                    <a href="index.html" class="flex items-center">
+                        <img class="h-10 w-auto mr-3" src="images/logo.png" alt="TrueSpec Logo" onerror="this.style.display='none'">
+                        <span class="font-bold text-2xl tracking-tight text-truespec-navy">TrueSpec</span>
+                    </a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="index.html" class="text-truespec-grey hover:text-truespec-navy font-bold text-sm uppercase tracking-wide transition">Home</a>
+                    <a href="book.html" class="bg-truespec-amber text-white px-5 py-2 rounded text-sm font-bold hover:bg-yellow-600 shadow transition uppercase tracking-wide">Book Now</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Content -->
+    <main class="flex-grow max-w-4xl mx-auto py-12 px-4 sm:px-6 w-full">
+        <div class="text-center mb-10">
+            <h1 class="text-4xl font-extrabold text-truespec-navy uppercase tracking-wide">Frequently Asked Questions</h1>
+            <p class="mt-3 text-gray-500">Everything you need to know about our inspection process.</p>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden divide-y divide-gray-200">
+            <!-- FAQ Item 1 -->
+            <div class="p-6 hover:bg-gray-50 transition">
+                <h3 class="text-lg font-bold text-gray-900 mb-2">Do I need the seller’s permission for an inspection?</h3>
+                <p class="text-gray-600">Yes, the seller must allow access to the vehicle so the inspector can perform the inspection. Please coordinate with them before booking.</p>
+            </div>
+            <!-- FAQ Item 2 -->
+            <div class="p-6 hover:bg-gray-50 transition">
+                <h3 class="text-lg font-bold text-gray-900 mb-2">How long does an inspection take?</h3>
+                <p class="text-gray-600">Usually between 60–90 minutes depending on the vehicle type, condition, and location.</p>
+            </div>
+            <!-- FAQ Item 3 -->
+            <div class="p-6 hover:bg-gray-50 transition">
+                <h3 class="text-lg font-bold text-gray-900 mb-2">Will I receive a report?</h3>
+                <p class="text-gray-600">Yes, after the inspection you will receive a detailed independent inspection report through your secure client portal once payment is confirmed.</p>
+            </div>
+            <!-- FAQ Item 4 -->
+            <div class="p-6 hover:bg-gray-50 transition">
+                <h3 class="text-lg font-bold text-gray-900 mb-2">Do you check for accident damage?</h3>
+                <p class="text-gray-600">Yes, the inspection includes a rigorous check of the chassis and body panels for signs of structural repairs or previous accident damage.</p>
+            </div>
+            <!-- FAQ Item 5 -->
+            <div class="p-6 hover:bg-gray-50 transition">
+                <h3 class="text-lg font-bold text-gray-900 mb-2">Can inspections be done at the seller’s location?</h3>
+                <p class="text-gray-600">Yes, our inspectors are fully mobile and can travel to the vehicle's location within Nairobi and surrounding areas.</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-truespec-navy py-8 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 text-center text-blue-200 text-sm">
+            &copy; 2024 TrueSpec Automotive. All rights reserved. <br>
+            <div class="mt-4 space-x-4">
+                <a href="tos.html" class="hover:text-white transition">Terms of Service</a>
+                <a href="faq.html" class="hover:text-white transition">FAQ</a>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

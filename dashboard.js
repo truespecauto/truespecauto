@@ -38,6 +38,7 @@ async function fetchDashboardData() {
     }
 }
 
+/*
 function renderClientDashboard(bookings) {
     const container = document.getElementById('app-content');
     const activeStatuses = ['pending', 'inspected_awaiting_payment', 'payment_submitted'];
@@ -58,6 +59,7 @@ function renderClientDashboard(bookings) {
     }
 
     if (pastBookings.length > 0) {
+        console.log(pastBookings, 'Past Bookings');
         html += `
         <div class="mt-16">
             <h2 class="text-xl font-bold text-truespec-navy uppercase tracking-widest border-b pb-2 mb-6">Inspection History</h2>
@@ -65,16 +67,28 @@ function renderClientDashboard(bookings) {
                 <table class="min-w-full text-sm text-left">
                     <thead class="bg-slate-50 text-gray-500 uppercase tracking-wider text-xs font-bold">
                         <tr>
-                            <th class="px-6 py-4">Date</th>
-                            <th class="px-6 py-4">Vehicle</th>
-                            <th class="px-6 py-4">Status</th>
+                            <th class="px-6 py-4 text-center">Date</th>
+                            <th class="px-6 py-4 text-center">Vehicle</th>
+                            <th class="px-6 py-4 text-center">Status</th>
                             <th class="px-6 py-4 text-right">Report</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
                         ${pastBookings.map(b => `
                             <tr class="hover:bg-slate-50 transition">
-                               <td class="px-6 py-4 text-right space-x-2">
+                               <td class="px-6 py-4 text-center space-x-2">
+                                    ${new Date(b.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                </td>
+                                <td class="px-6 py-4 text-center space-x-2">
+                                    <span class="font-bold text-gray-900 uppercase tracking-wide">${b.make} ${b.model}</span><br>
+                                    <span class="text-xs text-gray-500 uppercase tracking-widest">Ref: ${b._id.substring(0,8)}</span>
+                                </td>
+                                <td class="px-6 py-4 text-center space-x-2">
+                                    <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest ${b.status === 'completed_unlocked' ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-800'}">
+                                        ${formatStatus(b.status)}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-right space-x-2">
                                     <button onclick="openClientDetailsModal('${b._id}')" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-1.5 px-3 rounded uppercase tracking-wide mr-2 transition">Details</button>
                                     ${b.status === 'completed_unlocked' && b.reportPdfKey ? 
                                     `<a href="${API_BASE_URL}/api/data/files/${b.reportPdfKey}?token=${token}" target="_blank" class="text-truespec-sky font-bold hover:underline uppercase tracking-wide">Download</a>` 
@@ -137,6 +151,145 @@ function renderActiveBookingCard(booking) {
     </div>`;
 }
 
+*/
+
+function renderClientDashboard(bookings) {
+    const container = document.getElementById('app-content');
+    
+    // We only consider it 'past' if it's unlocked or cancelled
+    const activeBookings = bookings.filter(b => b.status !== 'completed_unlocked' && b.status !== 'cancelled');
+    const pastBookings = bookings.filter(b => b.status === 'completed_unlocked' || b.status === 'cancelled');
+    
+    let html = '';
+
+    if (activeBookings.length > 0) {
+        html += `<h2 class="text-xl font-bold text-truespec-navy uppercase tracking-widest border-b pb-2 mb-6">Active Inspections</h2>`;
+        html += activeBookings.map(booking => renderActiveBookingCard(booking)).join('');
+    } else if (pastBookings.length === 0) {
+        html += `
+        <div class="bg-white p-10 rounded-xl shadow-sm border border-gray-100 text-center">
+            <h3 class="text-xl font-bold text-gray-800 mb-2">No Inspections Yet</h3>
+            <p class="text-gray-500 mb-6">You don't have any vehicle inspections on file.</p>
+            <a href="book.html" class="inline-block bg-truespec-amber text-white px-8 py-3 rounded font-bold hover:bg-yellow-600 transition uppercase tracking-wide">Book Now</a>
+        </div>`;
+    }
+
+    if (pastBookings.length > 0) {
+        html += `
+        <div class="mt-16">
+            <h2 class="text-xl font-bold text-truespec-navy uppercase tracking-widest border-b pb-2 mb-6">Completed Inspections</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                ${pastBookings.map(booking => renderPastBookingCard(booking)).join('')}
+            </div>
+        </div>`;
+    }
+
+    container.innerHTML = html;
+}
+
+// --- NEW PIPELINE UI RENDERER ---
+function renderActiveBookingCard(booking) {
+    // Map the 8 DB statuses to a 5-step visual pipeline
+    const pipelineSteps = [
+        { label: "Submitted", keys: ['submitted'] },
+        { label: "Scheduled", keys: ['scheduled'] },
+        { label: "Inspected", keys: ['inspection_completed', 'invoice_report_ready'] },
+        { label: "Payment", keys: ['awaiting_payment', 'payment_submitted', 'payment_verified'] },
+        { label: "Unlocked", keys: ['completed_unlocked'] }
+    ];
+
+    let currentStepIndex = pipelineSteps.findIndex(step => step.keys.includes(booking.status));
+    if (currentStepIndex === -1) currentStepIndex = 0; // Fallback
+
+    // Progress Bar HTML generator
+    const renderProgressBar = () => {
+        return `
+        <div class="mt-6">
+            <div class="relative pt-1">
+                <div class="flex items-center justify-between mb-2">
+                    ${pipelineSteps.map((step, index) => `
+                        <div class="text-center w-1/5 relative">
+                            <div class="w-6 h-6 mx-auto rounded-full flex items-center justify-center text-[10px] font-bold z-10 relative
+                                ${index <= currentStepIndex ? 'bg-truespec-sky text-white ring-4 ring-blue-50' : 'bg-gray-200 text-gray-400'}">
+                                ${index < currentStepIndex ? '✓' : index + 1}
+                            </div>
+                            <div class="text-[10px] uppercase tracking-widest mt-2 font-bold ${index <= currentStepIndex ? 'text-truespec-navy' : 'text-gray-400'}">
+                                ${step.label}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                <!-- Connecting Line -->
+                <div class="absolute top-4 left-[10%] right-[10%] h-1 bg-gray-200 -z-0 rounded">
+                    <div class="h-1 bg-truespec-sky rounded transition-all duration-500" style="width: ${(currentStepIndex / (pipelineSteps.length - 1)) * 100}%"></div>
+                </div>
+            </div>
+        </div>`;
+    };
+
+    // Card UI
+    return `
+    <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6 mb-6 overflow-hidden">
+        <div class="flex justify-between items-start border-b pb-4">
+            <div>
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Ref: ${booking._id.substring(0,6).toUpperCase()}</p>
+                <h3 class="text-xl font-extrabold text-truespec-navy">${booking.make} ${booking.model}</h3>
+                <p class="text-sm text-gray-500">${booking.year} • ${booking.inspectionType}</p>
+            </div>
+            <button onclick="openClientDetailsModal('${booking._id}')" class="text-xs font-bold text-truespec-sky hover:text-blue-800 uppercase tracking-widest bg-blue-50 px-3 py-1.5 rounded">
+                View Details
+            </button>
+        </div>
+
+        ${renderProgressBar()}
+
+        ${renderClientActionSection(booking)}
+    </div>`;
+}
+
+function renderClientActionSection(booking) {
+    if (booking.status === 'awaiting_payment') {
+        return `
+        <div class="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-5">
+            <h4 class="font-bold text-yellow-800 uppercase tracking-widest text-sm mb-2">Invoice Ready</h4>
+            <p class="text-sm text-yellow-700 mb-4">Your inspection is complete. Please download the invoice and submit your M-Pesa transaction code to unlock the full report.</p>
+            <div class="flex gap-4 items-center">
+                <a href="${API_BASE_URL}/api/data/files/${booking.invoicePdfKey}?token=${token}" target="_blank" class="px-4 py-2 bg-white border border-gray-300 rounded font-bold text-xs uppercase text-gray-700 hover:bg-gray-50 shadow-sm">View Invoice</a>
+                <button onclick="openPaymentModal('${booking._id}', ${booking.price})" class="px-4 py-2 bg-truespec-amber text-white font-bold text-xs uppercase rounded hover:bg-yellow-600 shadow animate-pulse">Submit Payment</button>
+            </div>
+        </div>`;
+    }
+    if (booking.status === 'payment_submitted') {
+        return `
+        <div class="mt-6 bg-orange-50 border border-orange-200 rounded-lg p-5">
+            <h4 class="font-bold text-orange-800 uppercase tracking-widest text-sm mb-1">Verifying Payment</h4>
+            <p class="text-sm text-orange-700">We have received your payment details. Our team is verifying it and will unlock your report shortly.</p>
+        </div>`;
+    }
+    return ''; // Other statuses don't require explicit action boxes
+}
+
+function renderPastBookingCard(booking) {
+    return `
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col justify-between">
+        <div>
+            <div class="flex justify-between items-start mb-2">
+                <h3 class="text-lg font-bold text-truespec-navy">${booking.make} ${booking.model}</h3>
+                <span class="px-2 py-1 bg-green-100 text-green-800 text-[10px] font-bold uppercase tracking-widest rounded">Completed</span>
+            </div>
+            <p class="text-xs text-gray-500 mb-4">Inspected on: ${new Date(booking.createdAt).toLocaleDateString()}</p>
+        </div>
+        <div class="pt-4 border-t flex justify-between items-center">
+            <button onclick="openClientDetailsModal('${booking._id}')" class="text-xs font-bold text-gray-500 hover:text-truespec-navy uppercase">Details</button>
+            <a href="${API_BASE_URL}/api/data/files/${booking.reportPdfKey}?token=${token}" target="_blank" class="px-4 py-2 bg-truespec-navy text-white text-xs font-bold uppercase rounded shadow hover:bg-blue-900">Download Report</a>
+        </div>
+    </div>`;
+}
+
+
+
+
+
 function renderActionArea(booking) {
     if (booking.status === 'pending') {
         return `
@@ -163,8 +316,8 @@ function renderActionArea(booking) {
                     ${booking.invoicePdfKey ? `<a href="${API_BASE_URL}/api/data/files/${booking.invoicePdfKey}?token=${token}" target="_blank" class="text-xs bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-3 rounded uppercase tracking-wide transition">View Invoice</a>` : ''}
                 </div>
                 <div class="mb-6 p-4 bg-green-50 border border-green-200 rounded text-sm text-green-900">
-                    <span class="font-bold block mb-1">M-Pesa Paybill / Buy Goods</span>
-                    Till Number: <span class="font-mono font-bold text-lg tracking-widest">123456</span><br>
+                    <span class="font-bold block mb-1">Payment via M-Pesa</span>
+                    Number: <span class="font-mono font-bold text-lg tracking-widest"><a href="tel:+254758632987" target="_blank">0758 632 987</a></span><br>
                     <span class="text-xs text-green-700">Name: TrueSpec Automotive</span>
                 </div>
                 <form id="payment-form-${booking._id}" class="space-y-4" onsubmit="submitPayment(event, '${booking._id}')">
@@ -358,31 +511,38 @@ function openClientDetailsModal(id) {
     }
 
     // --- RENDER MAP ---
+    // --- RENDER GOOGLE MAP (Client Details) ---
     const mapContainer = document.getElementById('cDetMapContainer');
     const noMapMsg = document.getElementById('cDetNoMapMsg');
-    
+    window.initMap = function() {}; // Dummy callback
+
     if (b.mapCoordinates && b.mapCoordinates.lat && b.mapCoordinates.lng) {
         mapContainer.classList.remove('hidden');
         noMapMsg.classList.add('hidden');
         
-        const lat = b.mapCoordinates.lat;
-        const lng = b.mapCoordinates.lng;
+        const lat = parseFloat(b.mapCoordinates.lat);
+        const lng = parseFloat(b.mapCoordinates.lng);
 
-        if (!clientDetailsMap) {
-            clientDetailsMap = L.map('cDetMapContainer').setView([lat, lng], 15);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(clientDetailsMap);
-            clientDetailsMarker = L.marker([lat, lng]).addTo(clientDetailsMap);
+        if (!window.clientDetailsMap) {
+            window.clientDetailsMap = new google.maps.Map(mapContainer, {
+                zoom: 15,
+                center: { lat, lng },
+                mapTypeControl: false,
+                streetViewControl: false
+            });
+            window.clientDetailsMarker = new google.maps.Marker({
+                position: { lat, lng },
+                map: window.clientDetailsMap
+            });
         } else {
-            clientDetailsMap.setView([lat, lng], 15);
-            clientDetailsMarker.setLatLng([lat, lng]);
+            window.clientDetailsMap.setCenter({ lat, lng });
+            window.clientDetailsMarker.setPosition({ lat, lng });
         }
-        
-        // Timeout needed for Leaflet maps hidden inside modals to size correctly
-        setTimeout(() => clientDetailsMap.invalidateSize(), 100);
     } else {
         mapContainer.classList.add('hidden');
         noMapMsg.classList.remove('hidden');
     }
+
 
     document.getElementById('clientDetailsModal').classList.remove('hidden');
 }
@@ -391,3 +551,67 @@ function closeClientDetailsModal() {
     document.getElementById('clientDetailsModal').classList.add('hidden');
 }
 
+
+
+// --- PAYMENT MODAL LOGIC ---
+
+// 1. Open Modal and set data
+function openPaymentModal(id, price) {
+    document.getElementById('payBookingId').value = id;
+    document.getElementById('payAmountDisplay').innerText = price ? price.toLocaleString() : '0';
+    document.getElementById('payAccountDisplay').innerText = id.substring(0, 6).toUpperCase();
+    
+    document.getElementById('paymentForm').reset();
+    document.getElementById('paymentModal').classList.remove('hidden');
+}
+
+// 2. Close Modal
+function closePaymentModal() {
+    document.getElementById('paymentModal').classList.add('hidden');
+}
+
+// 3. Handle Form Submission
+document.getElementById('paymentForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const id = document.getElementById('payBookingId').value;
+    const btn = document.getElementById('btnPaymentSubmit');
+    btn.disabled = true;
+    btn.innerText = "Submitting...";
+
+    // Use FormData because we might have a file upload (screenshot)
+    const formData = new FormData();
+    formData.append('paymentTransactionCode', document.getElementById('payTxCode').value.toUpperCase());
+    
+    const screenshotFile = document.getElementById('payScreenshot').files[0];
+    if (screenshotFile) {
+        formData.append('screenshot', screenshotFile); // Note: Make sure your backend multer uses 'screenshot' as the field name
+    }
+
+    try {
+        // Assuming your backend route is PUT /api/data/submit-payment/:id (as per dataRoutes.js expectations)
+        const res = await fetch(`${API_BASE_URL}/api/data/payment/${id}`, {
+            method: 'PUT',
+            headers: { 
+                'Authorization': `Bearer ${token}` 
+                // Do NOT set Content-Type to application/json, fetch will automatically set it to multipart/form-data with boundaries
+            },
+            body: formData
+        });
+
+        if (res.ok) {
+            alert("Payment details submitted successfully! Our team will verify it shortly and unlock your report.");
+            closePaymentModal();
+            fetchDashboardData(); // Refresh the dashboard to show the new "Verifying Payment" status
+        } else {
+            const data = await res.json();
+            alert(data.message || "Failed to submit payment. Please try again.");
+        }
+    } catch (err) {
+        console.error(err);
+        alert("A network error occurred.");
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "Submit Payment";
+    }
+});

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms of Service - TrueSpec Automotive</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        truespec: { navy: '#1e3a8a', sky: '#0284c7', grey: '#64748b', light: '#f8fafc', amber: '#f59e0b' }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-truespec-light min-h-screen flex flex-col">
+
+    <!-- Navbar -->
+    <nav class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-20">
+                <div class="flex items-center">
+                    <a href="index.html" class="flex items-center">
+                        <img class="h-10 w-auto mr-3" src="images/logo.png" alt="TrueSpec Logo" onerror="this.style.display='none'">
+                        <span class="font-bold text-2xl tracking-tight text-truespec-navy">TrueSpec</span>
+                    </a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="index.html" class="text-truespec-grey hover:text-truespec-navy font-bold text-sm uppercase tracking-wide transition">Home</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Content -->
+    <main class="flex-grow max-w-4xl mx-auto py-12 px-4 sm:px-6 w-full">
+        <div class="bg-white rounded-xl shadow-md border border-gray-100 p-8 sm:p-12">
+            <h1 class="text-3xl font-extrabold text-truespec-navy uppercase tracking-wide mb-6 border-b pb-4">Terms of Service</h1>
+            
+            <div class="prose prose-blue max-w-none text-gray-600 space-y-6">
+                <p><strong>Last Updated:</strong> October 2024</p>
+                
+                <h3 class="text-xl font-bold text-gray-900">1. Introduction</h3>
+                <p>Welcome to TrueSpec Automotive. By booking an inspection with us, you agree to be bound by these Terms of Service. Please read them carefully.</p>
+
+                <h3 class="text-xl font-bold text-gray-900">2. Services Provided</h3>
+                <p>TrueSpec Automotive provides independent, visual pre-purchase vehicle inspections. Our reports are based on the condition of the vehicle at the exact time and date of the inspection. We do not dismantle components or perform invasive mechanical teardowns.</p>
+
+                <h3 class="text-xl font-bold text-gray-900">3. Client Responsibilities</h3>
+                <p>You are responsible for ensuring the seller consents to the inspection and provides adequate access to the vehicle, including keys, documentation, and a safe area for the inspector to work. If an inspection cannot be completed due to the seller's refusal, a call-out fee may still apply.</p>
+
+                <h3 class="text-xl font-bold text-gray-900">4. Limitation of Liability</h3>
+                <p>While we strive for the highest accuracy, TrueSpec Automotive cannot guarantee the future mechanical reliability of any inspected vehicle. The report is intended as a guide to assist you in making an informed purchasing decision and does not constitute a warranty or guarantee.</p>
+
+                <h3 class="text-xl font-bold text-gray-900">5. Payment and Access</h3>
+                <p>Inspection reports are locked upon completion. Full payment must be verified by our administrative team before the digital report is unlocked and made available in your client portal.</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-truespec-navy py-8 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 text-center text-blue-200 text-sm">
+            &copy; 2024 TrueSpec Automotive. All rights reserved. <br>
+            <div class="mt-4 space-x-4">
+                <a href="tos.html" class="hover:text-white transition">Terms of Service</a>
+                <a href="faq.html" class="hover:text-white transition">FAQ</a>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

@@ -3,6 +3,51 @@ let adminUser = JSON.parse(localStorage.getItem('adminUser'));
 let currentAuthEmail = '';
 let globalAdminBookings = [];
 
+
+
+const standardChecks = [
+    "Engine & Transmission", 
+    "Steering & Suspension", 
+    "Brakes & Tyres", 
+    "Bodywork & Chassis", 
+    "Interior & Electrical", 
+    "Test Drive & OBD2"
+];
+
+// Update your renderActionButton function (the one we made in Phase 2)
+function renderActionButton(b) {
+    // Inside your renderActionButton function:
+if (b.status === 'pending') return `<button onclick="openScheduleModal('${b._id}')" class="px-3 py-1.5 bg-blue-600 text-white text-xs font-bold uppercase tracking-widest rounded shadow hover:bg-blue-700">Schedule</button>`;
+
+    if (b.status === 'scheduled') return `<button onclick="updateAdminStatus('${b._id}', 'inspection_completed')" class="px-3 py-1.5 bg-indigo-600 text-white text-xs font-bold uppercase tracking-widest rounded shadow hover:bg-indigo-700">Mark Inspected</button>`;
+    
+    // NEW BUILD REPORT BUTTON
+    if (b.status === 'inspection_completed') return `<button onclick="openGenerateModal('${b._id}')" class="px-3 py-1.5 bg-truespec-navy text-white text-xs font-bold uppercase tracking-widest rounded shadow hover:bg-blue-900">Build Report</button>`;
+    
+    if (b.status === 'payment_submitted') return `<button onclick="openVerifyModal('${b._id}', '${b.paymentTransactionCode}', '${b.paymentScreenshotKey}')" class="px-3 py-1.5 bg-truespec-amber text-white text-xs font-bold uppercase tracking-widest rounded shadow hover:bg-yellow-600 animate-pulse">Verify Pay</button>`;
+    return `<span class="text-xs text-gray-400 font-bold uppercase tracking-widest">-</span>`;
+}
+
+async function updateAdminStatus(id, newStatus) {
+    if(!confirm(`Are you sure you want to move this booking to: ${formatStatus(newStatus)}?`)) return;
+    
+    try {
+        const res = await adminFetch(`${API_BASE_URL}/api/data/admin/status/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: newStatus })
+        });
+        if (res.ok) fetchAdminData();
+        else alert("Failed to update status");
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+
+
+
+
 if (adminToken && adminUser && adminUser.role === 'admin') {
     document.getElementById('authOverlay').classList.add('hidden');
     document.getElementById('portalContent').classList.remove('hidden');
@@ -146,11 +191,11 @@ function formatStatus(status) {
     return status;
 }
 
-function renderActionButton(b) {
+/*function renderActionButton(b) {
     if (b.status === 'pending') return `<button onclick="openUploadModal('${b._id}')" class="px-3 py-1.5 bg-truespec-navy text-white text-xs font-bold uppercase tracking-widest rounded shadow hover:bg-blue-900">Upload Docs</button>`;
     if (b.status === 'payment_submitted') return `<button onclick="openVerifyModal('${b._id}', '${b.paymentTransactionCode}', '${b.paymentScreenshotKey}')" class="px-3 py-1.5 bg-truespec-amber text-white text-xs font-bold uppercase tracking-widest rounded shadow hover:bg-yellow-600 animate-pulse">Verify Pay</button>`;
     return `<span class="text-xs text-gray-400 font-bold uppercase tracking-widest">-</span>`;
-}
+}*/
 
 function openUploadModal(id) {
     document.getElementById('uploadBookingId').value = id;
@@ -173,28 +218,7 @@ function openVerifyModal(id, txCode, screenshotKey) {
 
 function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
-document.getElementById('uploadDocsForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const id = document.getElementById('uploadBookingId').value;
-    const price = document.getElementById('uploadPrice').value;
-    const reportFile = document.getElementById('uploadReport').files[0];
-    const invoiceFile = document.getElementById('uploadInvoice').files[0];
-    const btn = document.getElementById('btnUploadSubmit');
-    
-    btn.disabled = true; btn.innerText = "Uploading...";
-    const formData = new FormData();
-    formData.append('price', price); formData.append('report', reportFile); formData.append('invoice', invoiceFile);
 
-    try {
-        const res = await adminFetch(`${API_BASE_URL}/api/data/admin/upload-docs/${id}`, { method: 'PUT', body: formData });
-        if (res.ok) {
-            closeModal('uploadModal'); document.getElementById('uploadDocsForm').reset(); fetchAdminData();
-        } else {
-            const data = await res.json(); alert(data.message || 'Upload failed');
-        }
-    } catch (e) { console.error(e); }
-    finally { btn.disabled = false; btn.innerText = "Upload & Bill"; }
-});
 
 async function confirmPayment() {
     const id = document.getElementById('verifyBookingId').value;
@@ -213,37 +237,85 @@ async function confirmPayment() {
 
 document.getElementById('manualBookingForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const payload = {
-        name: document.getElementById('mbName').value, email: document.getElementById('mbEmail').value,
-        phone: document.getElementById('mbPhone').value, make: document.getElementById('mbMake').value,
-        model: document.getElementById('mbModel').value, year: document.getElementById('mbYear').value,
-        inspectionType: document.getElementById('mbType').value, sellerName: document.getElementById('mbSeller').value,
-        locationText: document.getElementById('mbLocation').value, preferredDate: document.getElementById('mbPreferredDate').value
-    };
+    const btn = document.getElementById('mbSubmitBtn');
+    btn.disabled = true; btn.innerText = "Creating...";
+
+    const formData = new FormData();
+    formData.append('name', document.getElementById('mbName').value);
+    formData.append('email', document.getElementById('mbEmail').value);
+    formData.append('phone', document.getElementById('mbPhone').value);
+    formData.append('whatsapp', document.getElementById('mbWhatsApp').value);
+    
+    formData.append('make', document.getElementById('mbMake').value);
+    formData.append('model', document.getElementById('mbModel').value);
+    formData.append('year', document.getElementById('mbYear').value);
+    formData.append('registrationNumber', document.getElementById('mbReg').value);
+    formData.append('inspectionType', document.getElementById('mbType').value);
+    
+    formData.append('sellerName', document.getElementById('mbSeller').value);
+    formData.append('locationText', document.getElementById('mbLocation').value);
+    formData.append('lat', document.getElementById('mbLat').value);
+    formData.append('lng', document.getElementById('mbLng').value);
+    
+    formData.append('preferredDate', document.getElementById('mbPreferredDate').value);
+    formData.append('notes', document.getElementById('mbNotes').value);
+
+    // Append Photos
+    const fileInput = document.getElementById('mbPhotos');
+    for (let i = 0; i < fileInput.files.length; i++) {
+        formData.append('photos', fileInput.files[i]);
+    }
 
     try {
+        // NOTE: We do NOT pass 'Content-Type': 'application/json' because FormData handles multipart boundaries
         const res = await adminFetch(API_BASE_URL + '/api/data/admin/book', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+            method: 'POST',
+            body: formData
         });
+        
         if (res.ok) {
-            alert("Booking Created!"); document.getElementById('manualBookingForm').reset();
-            switchTab('dashboard'); fetchAdminData();
-        } else { alert("Error creating booking"); }
-    } catch (e) { console.error(e); }
+            alert("Booking Created!"); 
+            document.getElementById('manualBookingForm').reset();
+            switchTab('dashboard'); 
+            fetchAdminData();
+        } else { 
+            const data = await res.json();
+            alert(data.message || "Error creating booking"); 
+        }
+    } catch (e) { 
+        console.error(e); 
+        alert("Network error.");
+    } finally {
+        btn.disabled = false; btn.innerText = "Create Booking";
+    }
 });
+
 
 function switchTab(tabId) {
     document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
     document.getElementById('tab-' + tabId).classList.remove('hidden');
+    
     document.querySelectorAll('.tab-btn').forEach(el => {
         el.classList.remove('text-truespec-navy', 'border-b-2', 'border-truespec-navy');
         el.classList.add('text-gray-400');
     });
+    
     const activeBtn = Array.from(document.querySelectorAll('.tab-btn')).find(el => el.getAttribute('onclick').includes(tabId));
     if (activeBtn) {
-        activeBtn.classList.remove('text-gray-400'); activeBtn.classList.add('text-truespec-navy', 'border-b-2', 'border-truespec-navy');
+        activeBtn.classList.remove('text-gray-400'); 
+        activeBtn.classList.add('text-truespec-navy', 'border-b-2', 'border-truespec-navy');
+    }
+
+    // Refresh Google Map layout if switching to manual booking tab
+    if (tabId === 'manualBooking' && window.mbMap) {
+        // Give the tab a tiny moment to render before triggering resize
+        setTimeout(() => {
+            google.maps.event.trigger(window.mbMap, "resize");
+            window.mbMap.setCenter(window.mbMarker.getPosition());
+        }, 50);
     }
 }
+
 
 
 function togglePasswordVisibility(inputId, eyeIconId, eyeSlashIconId) {
@@ -343,7 +415,10 @@ document.getElementById('adminResetForm').addEventListener('submit', async (e) =
 });
 
 // --- ADD THE MODAL LOGIC (Paste at the bottom of the file) ---
+
+/*
 function openDetailsModal(id) {
+    console.log("Opening details for booking ID:", id); // Debug log to check the ID
     const b = globalAdminBookings.find(x => x._id === id);
     if (!b) return;
 
@@ -379,10 +454,60 @@ function openDetailsModal(id) {
         photoContainer.innerHTML = `<span class="text-gray-400 italic text-xs">No photos attached.</span>`;
     }
 
+    //Populate Invoice
+    const invoiceContainer = document.getElementById('detInvoice');
+    console.log("Invoice PDF Key:", b.invoicePdfKey); // Debug log to check the value
+    if (b.invoicePdfKey) {
+        invoiceContainer.innerHTML = `
+            <a href="${API_BASE_URL}/api/data/files/${b.invoicePdfKey}?token=${adminToken}" target="_blank" 
+               class="px-4 py-2 bg-blue-50 border border-blue-200 text-truespec-sky text-xs font-bold uppercase tracking-widest rounded hover:bg-blue-100 flex items-center">
+                <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                </svg>
+                View Invoice
+            </a>
+        `;
+    } else {
+        invoiceContainer.innerHTML = `<span class="text-gray-400 italic text-xs">No invoice generated.</span>`;
+    }
+
+    //Populate Payment Proof
+    const paymentProofContainer = document.getElementById('detPaymentProof');
+    if (b.paymentProof) {
+        paymentProofContainer.innerHTML = `
+            <a href="${API_BASE_URL}/api/data/files/${b.paymentProof}?token=${adminToken}" target="_blank" 
+               class="px-4 py-2 bg-blue-50 border border-blue-200 text-truespec-sky text-xs font-bold uppercase tracking-widest rounded hover:bg-blue-100 flex items-center">
+                <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                </svg>
+                View Payment Proof
+            </a>
+        `;
+    } else {
+        paymentProofContainer.innerHTML = `<span class="text-gray-400 italic text-xs">No payment proof provided.</span>`;
+    }
+
+
+    //Populate Report
+    const reportContainer = document.getElementById('detReport');
+    if (b.report) {
+        reportContainer.innerHTML = `
+            <a href="${API_BASE_URL}/api/data/files/${b.report}?token=${adminToken}" target="_blank" 
+               class="px-4 py-2 bg-blue-50 border border-blue-200 text-truespec-sky text-xs font-bold uppercase tracking-widest rounded hover:bg-blue-100 flex items-center">
+                <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                </svg>
+                View Report
+            </a>
+        `;
+    } else {
+        reportContainer.innerHTML = `<span class="text-gray-400 italic text-xs">No report generated.</span>`;
+    }
+
     document.getElementById('detailsModal').classList.remove('hidden');
 }
 
-
+*/
 
 // --- MAP VARIABLES ---
 let adminDetailsMap = null;
@@ -424,34 +549,258 @@ function openDetailsModal(id) {
         photoContainer.innerHTML = `<span class="text-gray-400 italic text-xs">No photos attached.</span>`;
     }
 
+    //Populate Invoice
+    const invoiceContainer = document.getElementById('detInvoice');
+    console.log("Invoice PDF Key:", b.invoicePdfKey); // Debug log to check the value
+    if (b.invoicePdfKey) {
+        invoiceContainer.innerHTML = `
+            <a href="${API_BASE_URL}/api/data/files/${b.invoicePdfKey}?token=${adminToken}" target="_blank" 
+               class="px-4 py-2 bg-blue-50 border border-blue-200 text-truespec-sky text-xs font-bold uppercase tracking-widest rounded hover:bg-blue-100 flex items-center">
+                <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                </svg>
+                View Invoice
+            </a>
+        `;
+    } else {
+        invoiceContainer.innerHTML = `<span class="text-gray-400 italic text-xs">No invoice generated.</span>`;
+    }
+
+    //Populate Payment Proof
+    const paymentProofContainer = document.getElementById('detPaymentProof');
+    if (b.paymentScreenshotKey) {
+        paymentProofContainer.innerHTML = `
+            <a href="${API_BASE_URL}/api/data/files/${b.paymentScreenshotKey}?token=${adminToken}" target="_blank" 
+               class="px-4 py-2 bg-blue-50 border border-blue-200 text-truespec-sky text-xs font-bold uppercase tracking-widest rounded hover:bg-blue-100 flex items-center">
+                <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                </svg>
+                View Payment Proof
+            </a>
+            <p class="text-xs text-gray-500 mt-1">Transaction Code: ${b.paymentTransactionCode || 'N/A'}</p>
+        `;
+    } else {
+        paymentProofContainer.innerHTML = `<span class="text-gray-400 italic text-xs">No payment proof provided.</span>`;
+    }
+
+
+    //Populate Report
+    const reportContainer = document.getElementById('detReports');
+    console.log("Report Key:", reportContainer); // Debug log to check the value
+    if (b.reportPdfKey) {
+        reportContainer.innerHTML = `
+            <a href="${API_BASE_URL}/api/data/files/${b.reportPdfKey}?token=${adminToken}" target="_blank" 
+               class="px-4 py-2 bg-blue-50 border border-blue-200 text-truespec-sky text-xs font-bold uppercase tracking-widest rounded hover:bg-blue-100 flex items-center">
+                <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                </svg>
+                View Report
+            </a>
+        `;
+    } else {
+        reportContainer.innerHTML = `<span class="text-gray-400 italic text-xs">No report generated.</span>`;
+    }
+
+
     // --- RENDER MAP ---
+     // --- RENDER GOOGLE MAP (Admin Details) ---
     const mapContainer = document.getElementById('detMapContainer');
     const noMapMsg = document.getElementById('detNoMapMsg');
+    const gMapsLink = document.getElementById('detGoogleMapsLink');
     
+    // We need a dummy initMap function to satisfy the Google Maps script callback, 
+    // even though we initialize manually inside the modal.
+        // Update window.initMap to handle the Manual Booking Map too
+    window.initMap = function() {
+        const defaultLat = -1.2921; // Nairobi
+        const defaultLng = 36.8219;
+        
+        document.getElementById('mbLat').value = defaultLat;
+        document.getElementById('mbLng').value = defaultLng;
+
+        window.mbMap = new google.maps.Map(document.getElementById("mbMapPlaceholder"), {
+            zoom: 12,
+            center: { lat: defaultLat, lng: defaultLng },
+            mapTypeControl: false,
+            streetViewControl: false
+        });
+
+        window.mbMarker = new google.maps.Marker({
+            position: { lat: defaultLat, lng: defaultLng },
+            map: window.mbMap,
+            draggable: true,
+            title: "Drag to exact location",
+            animation: google.maps.Animation.DROP
+        });
+
+        window.mbMarker.addListener('dragend', function() {
+            const pos = window.mbMarker.getPosition();
+            document.getElementById('mbLat').value = pos.lat();
+            document.getElementById('mbLng').value = pos.lng();
+        });
+        
+        window.mbMap.addListener('click', function(e) {
+            window.mbMarker.setPosition(e.latLng);
+            document.getElementById('mbLat').value = e.latLng.lat();
+            document.getElementById('mbLng').value = e.latLng.lng();
+        });
+    };
+ 
+
     if (b.mapCoordinates && b.mapCoordinates.lat && b.mapCoordinates.lng) {
         mapContainer.classList.remove('hidden');
+        gMapsLink.classList.remove('hidden');
         noMapMsg.classList.add('hidden');
         
-        const lat = b.mapCoordinates.lat;
-        const lng = b.mapCoordinates.lng;
+        const lat = parseFloat(b.mapCoordinates.lat);
+        const lng = parseFloat(b.mapCoordinates.lng);
 
-        if (!adminDetailsMap) {
-            adminDetailsMap = L.map('detMapContainer').setView([lat, lng], 15);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(adminDetailsMap);
-            adminDetailsMarker = L.marker([lat, lng]).addTo(adminDetailsMap);
+        // Update external Google Maps Link
+        gMapsLink.href = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+
+        // Render Map
+        if (!window.adminDetailsMap) {
+            window.adminDetailsMap = new google.maps.Map(mapContainer, {
+                zoom: 15,
+                center: { lat, lng },
+                mapTypeControl: false,
+                streetViewControl: false
+            });
+            window.adminDetailsMarker = new google.maps.Marker({
+                position: { lat, lng },
+                map: window.adminDetailsMap
+            });
         } else {
-            adminDetailsMap.setView([lat, lng], 15);
-            adminDetailsMarker.setLatLng([lat, lng]);
+            window.adminDetailsMap.setCenter({ lat, lng });
+            window.adminDetailsMarker.setPosition({ lat, lng });
         }
-        
-        // Timeout needed for Leaflet maps hidden inside modals to size correctly
-        setTimeout(() => adminDetailsMap.invalidateSize(), 100);
     } else {
         mapContainer.classList.add('hidden');
+        gMapsLink.classList.add('hidden');
         noMapMsg.classList.remove('hidden');
     }
 
+
     document.getElementById('detailsModal').classList.remove('hidden');
 }
+
+
+
+function openGenerateModal(id) {
+    document.getElementById('genBookingId').value = id;
+    document.getElementById('generateReportForm').reset();
+    
+    // Populate the 6 standard checks dynamically
+    const container = document.getElementById('systemChecksContainer');
+    container.innerHTML = standardChecks.map((check, index) => `
+        <div class="bg-white border border-gray-200 p-4 rounded shadow-sm">
+            <div class="flex justify-between items-center mb-2">
+                <label class="font-bold text-gray-800 uppercase tracking-widest text-xs">${check}</label>
+                <select id="check_status_${index}" required class="border p-1 text-xs rounded font-bold bg-gray-50">
+                    <option value="Pass">PASS</option>
+                    <option value="Warning">WARNING</option>
+                    <option value="Fail">FAIL</option>
+                </select>
+                <input type="hidden" id="check_name_${index}" value="${check}">
+            </div>
+            <textarea id="check_notes_${index}" rows="2" placeholder="Notes for ${check}..." class="w-full border p-2 rounded text-sm mt-1 focus:ring-truespec-sky"></textarea>
+        </div>
+    `).join('');
+
+    document.getElementById('generateModal').classList.remove('hidden');
+}
+
+document.getElementById('generateReportForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('genBookingId').value;
+    const btn = document.getElementById('btnGenerateSubmit');
+    
+    // Collect System Checks
+    const systemChecks = [];
+    for (let i = 0; i < standardChecks.length; i++) {
+        systemChecks.push({
+            name: document.getElementById(`check_name_${i}`).value,
+            status: document.getElementById(`check_status_${i}`).value,
+            notes: document.getElementById(`check_notes_${i}`).value
+        });
+    }
+
+    const payload = {
+        price: document.getElementById('genPrice').value,
+        overallRating: document.getElementById('genRating').value,
+        summaryNotes: document.getElementById('genSummary').value,
+        systemChecks: systemChecks
+    };
+
+    btn.disabled = true; 
+    btn.innerText = "Generating PDFs... Please Wait.";
+
+    try {
+        const res = await adminFetch(`${API_BASE_URL}/api/data/admin/generate-report/${id}`, { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        
+        if (res.ok) {
+            alert("Report & Invoice Generated Successfully! Client Billed.");
+            closeModal('generateModal');
+            fetchAdminData();
+        } else {
+            const data = await res.json(); 
+            alert(data.message || 'Generation failed');
+        }
+    } catch (e) { 
+        console.error(e); 
+        alert("Network Error");
+    } finally { 
+        btn.disabled = false; 
+        btn.innerText = "Generate & Bill Client"; 
+    }
+});
+
+
+// Open the Scheduling Modal
+function openScheduleModal(id) {
+    document.getElementById('schedBookingId').value = id;
+    document.getElementById('scheduleForm').reset();
+    document.getElementById('scheduleModal').classList.remove('hidden');
+}
+
+// Handle Scheduling Form Submission
+document.getElementById('scheduleForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('schedBookingId').value;
+    const btn = document.getElementById('btnScheduleSubmit');
+    
+    const payload = {
+        status: 'scheduled',
+        assignedMechanic: document.getElementById('schedMechanic').value,
+        scheduledTime: document.getElementById('schedTime').value,
+        estimatedDuration: document.getElementById('schedDuration').value
+    };
+
+    btn.disabled = true; btn.innerText = "Saving...";
+
+    try {
+        const res = await adminFetch(`${API_BASE_URL}/api/data/admin/status/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        
+        if (res.ok) {
+            closeModal('scheduleModal');
+            fetchAdminData();
+        } else {
+            alert("Failed to schedule booking");
+        }
+    } catch (e) {
+        console.error(e);
+        alert("Network Error");
+    } finally {
+        btn.disabled = false; btn.innerText = "Confirm Schedule";
+    }
+});
 
 
