@@ -250,68 +250,7 @@
         </div>
     </div>
 
-        <!-- MODAL: Generate Report & Invoice -->
-    <div id="generateModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[95vh] flex flex-col">
-            <!-- Header -->
-            <div class="p-6 border-b border-gray-200 flex justify-between items-center bg-blue-900 rounded-t-lg">
-                <h3 class="text-xl font-bold text-white uppercase tracking-widest">Build Inspection Report</h3>
-                <button onclick="closeModal('generateModal')" class="text-gray-300 hover:text-white font-bold text-xl">&times;</button>
-            </div>
-            
-            <!-- Scrollable Form -->
-            <div class="p-6 overflow-y-auto flex-1">
-                <form id="generateReportForm" class="space-y-8">
-                    <input type="hidden" id="genBookingId">
-
-                    <!-- INVOICE SECTION -->
-                    <div>
-                        <h4 class="font-bold text-truespec-sky uppercase tracking-widest border-b pb-2 mb-4 text-sm">1. Invoice Details</h4>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Final Invoice Amount (KES) *</label>
-                            <input type="number" id="genPrice" required class="w-full md:w-1/3 border p-3 rounded focus:ring-truespec-navy bg-gray-50 text-lg font-bold">
-                        </div>
-                    </div>
-
-                    <!-- REPORT SUMMARY SECTION -->
-                    <div>
-                        <h4 class="font-bold text-truespec-sky uppercase tracking-widest border-b pb-2 mb-4 text-sm">2. Executive Summary</h4>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div class="md:col-span-1">
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Overall Rating *</label>
-                                <select id="genRating" required class="w-full border p-3 rounded focus:ring-truespec-navy font-bold">
-                                    <option value="GOOD" class="text-green-600">GOOD (Green)</option>
-                                    <option value="FAIR" class="text-yellow-600">FAIR (Amber)</option>
-                                    <option value="POOR" class="text-red-600">POOR (Red)</option>
-                                </select>
-                            </div>
-                            <div class="md:col-span-2">
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Inspector Notes *</label>
-                                <textarea id="genSummary" required rows="3" placeholder="Brief summary of the vehicle's condition..." class="w-full border p-3 rounded focus:ring-truespec-navy"></textarea>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- SYSTEM CHECKS SECTION -->
-                    <div>
-                        <h4 class="font-bold text-truespec-sky uppercase tracking-widest border-b pb-2 mb-4 text-sm">3. System Checks</h4>
-                        <p class="text-xs text-gray-500 mb-4">Evaluate each core system. These will be generated dynamically on the PDF.</p>
-                        
-                        <div id="systemChecksContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <!-- JS will populate the 6 standard check rows here -->
-                        </div>
-                    </div>
-
-                </form>
-            </div>
-            
-            <!-- Footer -->
-            <div class="p-4 border-t border-gray-200 bg-gray-50 rounded-b-lg flex justify-end space-x-3">
-                <button type="button" onclick="closeModal('generateModal')" class="px-6 py-3 bg-gray-200 text-gray-700 font-bold rounded uppercase tracking-widest text-xs hover:bg-gray-300 transition">Cancel</button>
-                <button type="submit" form="generateReportForm" id="btnGenerateSubmit" class="px-6 py-3 bg-truespec-amber text-white font-bold rounded uppercase tracking-widest text-xs hover:bg-yellow-600 transition shadow-lg">Generate & Bill Client</button>
-            </div>
-        </div>
-    </div>
+       
 
 
     <!-- MODAL: Verify Payment -->
@@ -442,7 +381,7 @@
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Confirmed Time *</label>
-                        <input type="text" id="schedTime" placeholder="e.g. Tomorrow at 10:00 AM" required class="w-full border p-2 rounded focus:ring-truespec-navy">
+                        <input type="datetime-local" id="schedTime" placeholder="e.g. Tomorrow at 10:00 AM" required class="w-full border p-2 rounded focus:ring-truespec-navy">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Estimated Duration</label>
@@ -457,6 +396,156 @@
             </div>
         </div>
     </div>
+
+    <div id="reviewModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 p-4">
+    <div class="relative bg-white rounded-lg shadow-xl max-w-4xl w-full flex flex-col max-h-[90vh]">
+        
+        <div class="flex justify-between items-center border-b p-4">
+            <div>
+                <h3 class="text-xl font-bold text-gray-800">ADMIN REPORT REVIEW</h3>
+                <p class="text-xs text-gray-500 uppercase">Review and adjust mechanic findings before publishing</p>
+            </div>
+            <button onclick="document.getElementById('reviewModal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">
+                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L12 12m0 0l6 6M12 12l6-6m-6 6l-6-6" />
+                </svg>
+            </button>
+        </div>
+
+        <div class="overflow-y-auto p-6 space-y-8">
+            
+            <section>
+                <h4 class="text-sm font-bold text-blue-600 border-b mb-3 uppercase">1. Technical Details</h4>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div>
+                        <label class="text-[10px] uppercase text-gray-500">Odometer</label>
+                        <input type="text" id="admin_odometer" class="border p-1 text-sm w-full rounded">
+                    </div>
+                    <div>
+                        <label class="text-[10px] uppercase text-gray-500">VIN</label>
+                        <input type="text" id="admin_vin" class="border p-1 text-sm w-full rounded">
+                    </div>
+                    <div>
+                        <label class="text-[10px] uppercase text-gray-500">Engine</label>
+                        <select id="admin_engine_type" class="border p-1 text-sm w-full rounded ">
+                            <option value="Petrol">Petrol</option>
+                            <option value="Diesel">Diesel</option>
+                            <option value="Hybrid">Hybrid</option>
+                            <option value="EV">EV</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[10px] uppercase text-gray-500">Transmission</label>
+                        <select id="admin_transmission" class="border p-1 text-sm w-full rounded">
+                            <option value="Automatic">Automatic</option>
+                            <option value="Manual">Manual</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+
+            <section class="bg-gray-50 p-3 rounded border">
+                <div class="flex justify-between items-center mb-2">
+                    <h4 class="text-sm font-bold uppercase">3. Exterior & Body</h4>
+                    <select id="admin_exterior_status" class="text-xs font-bold border rounded p-1 admin-status-select">
+                        <option value="Green">GREEN - Clear</option>
+                        <option value="Amber">AMBER - Warning</option>
+                        <option value="Red">RED - Danger</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+                    <select id="admin_exterior_alignment" class="text-xs border p-1 rounded"><option value="OK">Alignment: OK</option><option value="Concern">Concern</option></select>
+                    <select id="admin_exterior_paint" class="text-xs border p-1 rounded"><option value="OK">Paint: OK</option><option value="Concern">Concern</option></select>
+                    <select id="admin_exterior_dents" class="text-xs border p-1 rounded"><option value="None">Dents: None</option><option value="Minor">Minor</option><option value="Major">Major</option></select>
+                    <select id="admin_exterior_glass" class="text-xs border p-1 rounded"><option value="OK">Glass: OK</option><option value="Concern">Concern</option></select>
+                </div>
+                <textarea id="admin_exterior_notes" rows="2" class="w-full text-xs border p-2 rounded" placeholder="Exterior notes..."></textarea>
+            </section>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="border p-3 rounded">
+                    <div class="flex justify-between items-center mb-2">
+                        <h4 class="text-xs font-bold uppercase">4. Tyres & Suspension</h4>
+                        <select id="admin_tyres_status" class="text-[10px] border rounded admin-status-select"><option value="Green">Green</option><option value="Amber">Amber</option><option value="Red">Red</option></select>
+                    </div>
+                    <textarea id="admin_tyres_notes" rows="2" class="w-full text-xs border p-2 rounded" placeholder="Tyre/Suspension notes..."></textarea>
+                </div>
+
+                <div class="border p-3 rounded">
+                    <div class="flex justify-between items-center mb-2">
+                        <h4 class="text-xs font-bold uppercase">5. Engine Bay</h4>
+                        <select id="admin_engineBay_status" class="text-[10px] border rounded admin-status-select"><option value="Green">Green</option><option value="Amber">Amber</option><option value="Red">Red</option></select>
+                    </div>
+                    <textarea id="admin_engineBay_notes" rows="2" class="w-full text-xs border p-2 rounded" placeholder="Engine notes..."></textarea>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-gray-50 p-2 rounded border">
+                    <label class="text-[10px] font-bold block mb-1">6. INTERIOR STATUS</label>
+                    <select id="admin_interior_status" class="w-full text-xs mb-2 border rounded admin-status-select"><option value="Green">Green</option><option value="Amber">Amber</option><option value="Red">Red</option></select>
+                    <textarea id="admin_interior_notes" rows="2" class="w-full text-xs border p-1 rounded"></textarea>
+                </div>
+                <div class="bg-gray-50 p-2 rounded border">
+                    <label class="text-[10px] font-bold block mb-1">7. DIAGNOSTICS (OBD)</label>
+                    <select id="admin_diagnostics_status" class="w-full text-xs mb-2 border rounded admin-status-select"><option value="Green">Green</option><option value="Amber">Amber</option><option value="Red">Red</option></select>
+                    <textarea id="admin_diagnostics_notes" rows="2" class="w-full text-xs border p-1 rounded"></textarea>
+                </div>
+                <div class="bg-gray-50 p-2 rounded border">
+                    <label class="text-[10px] font-bold block mb-1">8. ROAD TEST</label>
+                    <select id="admin_roadTest_status" class="w-full text-xs mb-2 border rounded admin-status-select"><option value="Green">Green</option><option value="Amber">Amber</option><option value="Red">Red</option></select>
+                    <textarea id="admin_roadTest_notes" rows="2" class="w-full text-xs border p-1 rounded"></textarea>
+                </div>
+            </div>
+
+            <hr>
+
+            <section class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                <h4 class="text-sm font-bold text-blue-800 mb-4 uppercase">Final Assessment & Recommendation</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="text-xs font-bold text-gray-700">Overall Vehicle Rating</label>
+                        <select id="admin_overallRating" class="w-full border p-2 rounded font-bold mt-1 admin-status-select">
+                            <option value="GREEN" class="text-green-600">GREEN - GOOD CONDITION</option>
+                            <option value="AMBER" class="text-yellow-600">AMBER - NEEDS ATTENTION</option>
+                            <option value="RED" class="text-red-600">RED - NOT RECOMMENDED</option>
+                        </select>
+                        
+                        <label class="text-xs font-bold text-gray-700 block mt-4">Professional Recommendation</label>
+                        <select id="admin_professionalRecommendation" class="w-full border p-2 rounded text-sm mt-1">
+                            <option value="Suitable">Suitable for purchase</option>
+                            <option value="Conditionally Suitable">Conditionally Suitable</option>
+                            <option value="Not Recommended">Not Recommended</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-700">Key Findings Summary (Displayed on Page 1)</label>
+                        <textarea id="admin_keyFindings" rows="5" class="w-full border p-2 text-sm rounded mt-1" placeholder="Bullet points of major issues..."></textarea>
+                    </div>
+                </div>
+            </section>
+
+            <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-300">
+                <label class="block text-sm font-bold text-yellow-800 mb-2">Final Invoice Amount (KES)</label>
+                <div class="relative">
+                    <span class="absolute left-3 top-2 text-gray-500 font-bold">KES</span>
+                    <input type="number" id="invoicePrice" class="pl-12 w-full border border-yellow-400 rounded p-2 font-mono font-bold text-lg" value="5000">
+                </div>
+            </div>
+        </div>
+
+        <div class="flex justify-end gap-3 p-4 border-t bg-gray-50">
+            <button onclick="document.getElementById('reviewModal').classList.add('hidden')" class="px-6 py-2 border border-gray-300 text-gray-600 text-xs font-bold uppercase rounded hover:bg-white">
+                Cancel
+            </button>
+            <button id="approveReportBtn" class="px-8 py-2 bg-green-600 text-white text-xs font-bold uppercase tracking-widest rounded shadow-lg hover:bg-green-700 transition-all">
+                Approve & Generate PDF Report
+            </button>
+        </div>
+    </div>
+</div>
+
+    
 
 
 

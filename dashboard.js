@@ -38,120 +38,6 @@ async function fetchDashboardData() {
     }
 }
 
-/*
-function renderClientDashboard(bookings) {
-    const container = document.getElementById('app-content');
-    const activeStatuses = ['pending', 'inspected_awaiting_payment', 'payment_submitted'];
-    const activeBookings = bookings.filter(b => activeStatuses.includes(b.status));
-    const pastBookings = bookings.filter(b => !activeStatuses.includes(b.status));
-    let html = '';
-
-    if (activeBookings.length > 0) {
-        html += `<h2 class="text-xl font-bold text-truespec-navy uppercase tracking-widest border-b pb-2 mb-6">Active Inspections</h2>`;
-        html += activeBookings.map(booking => renderActiveBookingCard(booking)).join('');
-    } else if (pastBookings.length === 0) {
-        html += `
-        <div class="bg-white p-10 rounded-xl shadow-sm border border-gray-100 text-center">
-            <h3 class="text-xl font-bold text-gray-800 mb-2">No Inspections Yet</h3>
-            <p class="text-gray-500 mb-6">You don't have any vehicle inspections on file.</p>
-            <a href="book.html" class="inline-block bg-truespec-amber text-white px-8 py-3 rounded font-bold hover:bg-yellow-600 transition uppercase tracking-wide">Book Now</a>
-        </div>`;
-    }
-
-    if (pastBookings.length > 0) {
-        console.log(pastBookings, 'Past Bookings');
-        html += `
-        <div class="mt-16">
-            <h2 class="text-xl font-bold text-truespec-navy uppercase tracking-widest border-b pb-2 mb-6">Inspection History</h2>
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden" style="overflow-x: auto;">
-                <table class="min-w-full text-sm text-left">
-                    <thead class="bg-slate-50 text-gray-500 uppercase tracking-wider text-xs font-bold">
-                        <tr>
-                            <th class="px-6 py-4 text-center">Date</th>
-                            <th class="px-6 py-4 text-center">Vehicle</th>
-                            <th class="px-6 py-4 text-center">Status</th>
-                            <th class="px-6 py-4 text-right">Report</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100">
-                        ${pastBookings.map(b => `
-                            <tr class="hover:bg-slate-50 transition">
-                               <td class="px-6 py-4 text-center space-x-2">
-                                    ${new Date(b.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-                                </td>
-                                <td class="px-6 py-4 text-center space-x-2">
-                                    <span class="font-bold text-gray-900 uppercase tracking-wide">${b.make} ${b.model}</span><br>
-                                    <span class="text-xs text-gray-500 uppercase tracking-widest">Ref: ${b._id.substring(0,8)}</span>
-                                </td>
-                                <td class="px-6 py-4 text-center space-x-2">
-                                    <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest ${b.status === 'completed_unlocked' ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-800'}">
-                                        ${formatStatus(b.status)}
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4 text-right space-x-2">
-                                    <button onclick="openClientDetailsModal('${b._id}')" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-1.5 px-3 rounded uppercase tracking-wide mr-2 transition">Details</button>
-                                    ${b.status === 'completed_unlocked' && b.reportPdfKey ? 
-                                    `<a href="${API_BASE_URL}/api/data/files/${b.reportPdfKey}?token=${token}" target="_blank" class="text-truespec-sky font-bold hover:underline uppercase tracking-wide">Download</a>` 
-                                    : '-'}
-                                </td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            </div>
-        </div>`;
-    }
-    container.innerHTML = html;
-}
-
-function renderActiveBookingCard(booking) {
-    let step = 1;
-    if (booking.status === 'inspected_awaiting_payment') step = 2;
-    if (booking.status === 'payment_submitted') step = 3;
-    if (booking.status === 'completed_unlocked') step = 4;
-
-    return `
-      <div class="bg-slate-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-            <div>
-                <h3 class="text-xl font-bold text-gray-900 uppercase tracking-wide">${booking.make} ${booking.model} <span class="text-gray-500 font-normal">(${booking.year})</span></h3>
-                <p class="text-xs text-gray-500 mt-1 uppercase tracking-widest">Ref: ${booking._id.substring(0,8)} | Location: ${booking.sellerName}</p>
-            </div>
-            <div class="text-right flex flex-col items-end">
-                <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest bg-blue-100 text-blue-800 mb-2">
-                    ${formatStatus(booking.status)}
-                </span>
-                <button onclick="openClientDetailsModal('${booking._id}')" class="text-xs bg-white text-gray-600 border border-gray-300 hover:bg-gray-50 font-bold py-1 px-3 rounded uppercase transition">View Details</button>
-            </div>
-        </div>
-        <div class="p-6 md:p-8">
-            <div class="relative max-w-3xl mx-auto mb-12">
-                <div class="absolute top-1/2 left-0 w-full h-1 bg-gray-200 -translate-y-1/2 z-0"></div>
-                <div class="absolute top-1/2 left-0 h-1 bg-truespec-navy -translate-y-1/2 z-0 transition-all duration-500" style="width: ${(step-1) * 33.33}%"></div>
-                <div class="relative z-10 flex justify-between text-xs font-bold uppercase tracking-widest text-gray-500">
-                    <div class="flex flex-col items-center">
-                        <div class="w-8 h-8 rounded-full flex items-center justify-center mb-2 ${step >= 1 ? 'bg-truespec-navy text-white' : 'bg-gray-200 text-gray-400'} shadow">1</div>
-                        <span>Pending</span>
-                    </div>
-                    <div class="flex flex-col items-center">
-                        <div class="w-8 h-8 rounded-full flex items-center justify-center mb-2 ${step >= 2 ? 'bg-truespec-navy text-white' : 'bg-gray-200 text-gray-400'} shadow">2</div>
-                        <span>Inspected</span>
-                    </div>
-                    <div class="flex flex-col items-center">
-                        <div class="w-8 h-8 rounded-full flex items-center justify-center mb-2 ${step >= 3 ? 'bg-truespec-navy text-white' : 'bg-gray-200 text-gray-400'} shadow">3</div>
-                        <span>Verifying</span>
-                    </div>
-                    <div class="flex flex-col items-center">
-                        <div class="w-8 h-8 rounded-full flex items-center justify-center mb-2 ${step >= 4 ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-400'} shadow">4</div>
-                        <span>Unlocked</span>
-                    </div>
-                </div>
-            </div>
-            ${renderActionArea(booking)}
-        </div>
-    </div>`;
-}
-
-*/
 
 function renderClientDashboard(bookings) {
     const container = document.getElementById('app-content');
@@ -161,6 +47,8 @@ function renderClientDashboard(bookings) {
     const pastBookings = bookings.filter(b => b.status === 'completed_unlocked' || b.status === 'cancelled');
     
     let html = '';
+
+    console.log('Rendering dashboard with bookings:', activeBookings);
 
     if (activeBookings.length > 0) {
         html += `<h2 class="text-xl font-bold text-truespec-navy uppercase tracking-widest border-b pb-2 mb-6">Active Inspections</h2>`;
@@ -193,7 +81,7 @@ function renderActiveBookingCard(booking) {
     const pipelineSteps = [
         { label: "Submitted", keys: ['submitted'] },
         { label: "Scheduled", keys: ['scheduled'] },
-        { label: "Inspected", keys: ['inspection_completed', 'invoice_report_ready'] },
+        { label: "Inspected", keys: ['inspection_completed', 'invoice_report_ready','pending_admin_review'] },
         { label: "Payment", keys: ['awaiting_payment', 'payment_submitted', 'payment_verified'] },
         { label: "Unlocked", keys: ['completed_unlocked'] }
     ];
@@ -248,14 +136,15 @@ function renderActiveBookingCard(booking) {
 }
 
 function renderClientActionSection(booking) {
+    console.log('Rendering action section for booking status:', booking);
     if (booking.status === 'awaiting_payment') {
         return `
         <div class="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-5">
             <h4 class="font-bold text-yellow-800 uppercase tracking-widest text-sm mb-2">Invoice Ready</h4>
             <p class="text-sm text-yellow-700 mb-4">Your inspection is complete. Please download the invoice and submit your M-Pesa transaction code to unlock the full report.</p>
             <div class="flex gap-4 items-center">
-                <a href="${API_BASE_URL}/api/data/files/${booking.invoicePdfKey}?token=${token}" target="_blank" class="px-4 py-2 bg-white border border-gray-300 rounded font-bold text-xs uppercase text-gray-700 hover:bg-gray-50 shadow-sm">View Invoice</a>
-                <button onclick="openPaymentModal('${booking._id}', ${booking.price})" class="px-4 py-2 bg-truespec-amber text-white font-bold text-xs uppercase rounded hover:bg-yellow-600 shadow animate-pulse">Submit Payment</button>
+                <a href="${API_BASE_URL}/api/data/files/${booking.invoice.invoicePdfKey}?token=${token}" target="_blank" class="px-4 py-2 bg-white border border-gray-300 rounded font-bold text-xs uppercase text-gray-700 hover:bg-gray-50 shadow-sm">View Invoice</a>
+                <button onclick="openPaymentModal('${booking._id}', ${booking.invoice.amount})" class="px-4 py-2 bg-truespec-amber text-white font-bold text-xs uppercase rounded hover:bg-yellow-600 shadow animate-pulse">Submit Payment</button>
             </div>
         </div>`;
     }
@@ -270,6 +159,8 @@ function renderClientActionSection(booking) {
 }
 
 function renderPastBookingCard(booking) {
+    //console.log('Rendering past booking', booking);
+    const reportKey = booking.report ? booking.report.reportPdfKey : booking.reportPdfKey;
     return `
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col justify-between">
         <div>
@@ -281,7 +172,7 @@ function renderPastBookingCard(booking) {
         </div>
         <div class="pt-4 border-t flex justify-between items-center">
             <button onclick="openClientDetailsModal('${booking._id}')" class="text-xs font-bold text-gray-500 hover:text-truespec-navy uppercase">Details</button>
-            <a href="${API_BASE_URL}/api/data/files/${booking.reportPdfKey}?token=${token}" target="_blank" class="px-4 py-2 bg-truespec-navy text-white text-xs font-bold uppercase rounded shadow hover:bg-blue-900">Download Report</a>
+            <a href="${API_BASE_URL}/api/data/files/${reportKey}?token=${token}" target="_blank" class="px-4 py-2 bg-truespec-navy text-white text-xs font-bold uppercase rounded shadow hover:bg-blue-900">Download Report</a>
         </div>
     </div>`;
 }
@@ -311,9 +202,9 @@ function renderActionArea(booking) {
                 <div class="bg-white p-4 rounded border border-gray-200 mb-4 flex justify-between items-center shadow-sm">
                     <div>
                         <span class="block text-xs text-gray-500 uppercase font-bold tracking-widest">Amount Due</span>
-                        <span class="text-2xl font-extrabold text-truespec-navy">KES ${booking.price.toLocaleString()}</span>
+                        <span class="text-2xl font-extrabold text-truespec-navy">KES ${booking.invoice.amount.toLocaleString()}</span>
                     </div>
-                    ${booking.invoicePdfKey ? `<a href="${API_BASE_URL}/api/data/files/${booking.invoicePdfKey}?token=${token}" target="_blank" class="text-xs bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-3 rounded uppercase tracking-wide transition">View Invoice</a>` : ''}
+                    ${booking.invoice.invoicePdfKey ? `<a href="${API_BASE_URL}/api/data/files/${booking.invoice.invoicePdfKey}?token=${token}" target="_blank" class="text-xs bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-3 rounded uppercase tracking-wide transition">View Invoice</a>` : ''}
                 </div>
                 <div class="mb-6 p-4 bg-green-50 border border-green-200 rounded text-sm text-green-900">
                     <span class="font-bold block mb-1">Payment via M-Pesa</span>
@@ -436,7 +327,7 @@ function logout() {
     window.location.href = 'login.html';
 }
 
-function openClientDetailsModal(id) {
+/*function openClientDetailsModal(id) {
     const b = globalClientBookings.find(x => x._id === id);
     if (!b) return;
 
@@ -448,7 +339,9 @@ function openClientDetailsModal(id) {
     
     document.getElementById('cDetSeller').innerText = b.sellerName || '-';
     document.getElementById('cDetLocation').innerText = b.locationText || '-';
-    document.getElementById('cDetDate').innerText = b.preferredDate || '-';
+    const preferredDate = b.preferredDate ? new Date(b.preferredDate).toLocaleDateString() : '-';
+    console.log('Preferred Date:', b.preferredDate, 'Formatted:', preferredDate);
+    document.getElementById('cDetDate').innerText = preferredDate;
     document.getElementById('cDetNotes').innerText = b.notes || 'No specific notes provided.';
 
     // Populate Photos
@@ -468,7 +361,7 @@ function openClientDetailsModal(id) {
     }
 
     document.getElementById('clientDetailsModal').classList.remove('hidden');
-}
+}*/
 
 function closeClientDetailsModal() {
     document.getElementById('clientDetailsModal').classList.add('hidden');
@@ -491,7 +384,9 @@ function openClientDetailsModal(id) {
     
     document.getElementById('cDetSeller').innerText = b.sellerName || '-';
     document.getElementById('cDetLocation').innerText = b.locationText || '-';
-    document.getElementById('cDetDate').innerText = b.preferredDate || '-';
+    const preferredDate = b.preferredDate ? new Date(b.preferredDate).toLocaleDateString() : '-';
+    const preferredTime = b.preferredDate ? new Date(b.preferredDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+    document.getElementById('cDetDate').innerText = preferredDate + (preferredTime ? ` at ${preferredTime}` : '') ;
     document.getElementById('cDetNotes').innerText = b.notes || 'No specific notes provided.';
 
     // Populate Photos

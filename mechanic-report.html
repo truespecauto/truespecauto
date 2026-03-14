@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mechanic Inspection Report</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .section-card { @apply bg-white p-6 rounded-lg shadow mb-6 border-t-4; }
+        .status-green { border-color: #10B981; }
+        .status-amber { border-color: #F59E0B; }
+        .status-red { border-color: #EF4444; }
+        label { @apply block text-sm font-semibold text-gray-700 mb-1; }
+        select, input[type="text"], input[type="number"], textarea { 
+            @apply w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-blue-500 focus:border-blue-500; 
+        }
+        .radio-group { @apply flex gap-4 mt-2; }
+        .radio-item { @apply flex items-center gap-2 text-sm; }
+    </style>
+</head>
+<body class="bg-gray-100 p-4 pb-20">
+    <div class="max-w-3xl mx-auto">
+        <header class="mb-6">
+            <h1 class="text-2xl font-bold text-gray-800">Vehicle Inspection Entry</h1>
+            <div id="carInfo" class="mt-2 p-4 bg-blue-600 rounded-lg text-sm text-white shadow-md">
+                Loading vehicle details...
+            </div>
+            <div id="saveStatus" class="fixed bottom-4 right-4 bg-black bg-opacity-75 text-white px-4 py-2 rounded-full text-xs z-50"></div>
+        </header>
+
+        <form id="reportForm" class="space-y-6">
+            
+            <div class="section-card border-blue-500">
+                <h2 class="font-bold text-lg mb-4 border-b pb-2">1. Technical Details</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label>Odometer Reading</label>
+                        <input type="text" name="odometer" class="auto-save-field" placeholder="e.g. 85,000 KM">
+                    </div>
+                    <div>
+                        <label>VIN / Chassis Number</label>
+                        <input type="text" name="vin" class="auto-save-field">
+                    </div>
+                    <div>
+                        <label>Engine Type</label>
+                        <select name="engine_type" class="auto-save-field">
+                            <option value="">Select...</option>
+                            <option value="Petrol" selected>Petrol</option>
+                            <option value="Diesel">Diesel</option>
+                            <option value="Hybrid">Hybrid</option>
+                            <option value="EV">EV</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Transmission</label>
+                        <select name="transmission" class="auto-save-field">
+                            <option value="">Select...</option>
+                            <option value="Automatic" selected>Automatic</option>
+                            <option value="Manual">Manual</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card status-amber">
+                <h2 class="font-bold text-lg mb-4">3. Exterior & Body</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label>Panel Alignment</label>
+                        <select name="exterior_alignment" class="auto-save-field">
+                            <option value="OK" selected>OK</option>
+                            <option value="Concern">Concern</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Paint Consistency</label>
+                        <select name="exterior_paint" class="auto-save-field">
+                            <option value="OK" selected>OK</option>
+                            <option value="Concern">Concern</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Dents / Scratches</label>
+                        <select name="exterior_dents" class="auto-save-field">
+                            <option value="None" selected>None</option>
+                            <option value="Minor">Minor</option>
+                            <option value="Major">Major</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Glass & Mirrors</label>
+                        <select name="exterior_glass" class="auto-save-field">
+                            <option value="OK" selected>OK</option>
+                            <option value="Concern">Concern</option>
+                        </select>
+                    </div>
+                </div>
+                <label>Overall Exterior Status</label>
+                <div class="radio-group mb-4">
+                    <label class="radio-item text-green-600"><input type="radio" name="exterior_status" value="Green" class="auto-save-field"> Green</label>
+                    <label class="radio-item text-yellow-600"><input type="radio" name="exterior_status" value="Amber" class="auto-save-field"> Amber</label>
+                    <label class="radio-item text-red-600"><input type="radio" name="exterior_status" value="Red" class="auto-save-field"> Red</label>
+                </div>
+                <textarea name="exterior_notes" class="auto-save-field" rows="2" placeholder="Exterior notes..."></textarea>
+            </div>
+
+            <div class="section-card status-amber">
+                <h2 class="font-bold text-lg mb-4">4. Tyres, Wheels & Suspension</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label>Tyre Tread/Wear</label>
+                        <select name="tyres_tread" class="auto-save-field">
+                            <option value="OK" selected>OK</option>
+                            <option value="Uneven">Uneven</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Rims/Wheel Damage</label>
+                        <select name="tyres_rims" class="auto-save-field">
+                            <option value="None" selected>None</option>
+                            <option value="Present">Present</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Suspension Leaks</label>
+                        <select name="tyres_leaks" class="auto-save-field">
+                            <option value="None" selected>None</option>
+                            <option value="Present">Present</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Ride Height Consistency</label>
+                        <select name="tyres_height" class="auto-save-field">
+                            <option value="OK" selected>OK</option>
+                            <option value="Concern">Concern</option>
+                        </select>
+                    </div>
+                </div>
+                <label>Overall Tyres Status</label>
+                <div class="radio-group mb-4">
+                    <label class="radio-item text-green-600"><input type="radio" name="tyres_status" value="Green" class="auto-save-field"> Green</label>
+                    <label class="radio-item text-yellow-600"><input type="radio" name="tyres_status" value="Amber" class="auto-save-field"> Amber</label>
+                    <label class="radio-item text-red-600"><input type="radio" name="tyres_status" value="Red" class="auto-save-field"> Red</label>
+                </div>
+                <textarea name="tyres_notes" class="auto-save-field" rows="2" placeholder="Suspension/Tyre notes..."></textarea>
+            </div>
+
+            <div class="section-card status-amber">
+                <h2 class="font-bold text-lg mb-4">5. Engine Bay (Non-Invasive)</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label>Visible Oil Leaks</label>
+                        <select name="engineBay_oilLeaks" class="auto-save-field">
+                            <option value="None" selected>None</option>
+                            <option value="Present">Present</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Coolant Leaks</label>
+                        <select name="engineBay_coolantLeaks" class="auto-save-field">
+                            <option value="None" selected>None</option>
+                            <option value="Present">Present</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Hoses & Belts</label>
+                        <select name="engineBay_hosesBelts" class="auto-save-field">
+                            <option value="OK" selected>OK</option>
+                            <option value="Worn">Worn</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>General Cleanliness</label>
+                        <select name="engineBay_generalCondition" class="auto-save-field">
+                            <option value="Clean" selected>Clean</option>
+                            <option value="Average">Average</option>
+                            <option value="Poor">Poor</option>
+                        </select>
+                    </div>
+                </div>
+                <label>Overall Engine Status</label>
+                <div class="radio-group mb-4">
+                    <label class="radio-item text-green-600"><input type="radio" name="engineBay_status" value="Green" class="auto-save-field"> Green</label>
+                    <label class="radio-item text-yellow-600"><input type="radio" name="engineBay_status" value="Amber" class="auto-save-field"> Amber</label>
+                    <label class="radio-item text-red-600"><input type="radio" name="engineBay_status" value="Red" class="auto-save-field"> Red</label>
+                </div>
+                <textarea name="engineBay_notes" class="auto-save-field" rows="2" placeholder="Engine bay notes..."></textarea>
+            </div>
+
+            <div class="section-card status-amber">
+                <h2 class="font-bold text-lg mb-4">6. Interior & Electronics</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label>Seats & Trim Wear</label>
+                        <select name="interior_wear" class="auto-save-field">
+                            <option value="Minimal" selected>Minimal</option>
+                            <option value="Moderate">Moderate</option>
+                            <option value="Excessive">Excessive</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Dashboard Warning Lights</label>
+                        <select name="interior_lights" class="auto-save-field">
+                            <option value="None" selected>None</option>
+                            <option value="Present">Present</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Windows/Mirrors/Locks</label>
+                        <select name="interior_hardware" class="auto-save-field">
+                            <option value="Functional" selected>Functional</option>
+                            <option value="Issues">Issues</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Infotainment & AC</label>
+                        <select name="interior_electronics" class="auto-save-field">
+                            <option value="OK" selected>OK</option>
+                            <option value="Issues">Issues</option>
+                        </select>
+                    </div>
+                </div>
+                <label>Overall Interior Status</label>
+                <div class="radio-group mb-4">
+                    <label class="radio-item text-green-600"><input type="radio" name="interior_status" value="Green" class="auto-save-field"> Green</label>
+                    <label class="radio-item text-yellow-600"><input type="radio" name="interior_status" value="Amber" class="auto-save-field"> Amber</label>
+                    <label class="radio-item text-red-600"><input type="radio" name="interior_status" value="Red" class="auto-save-field"> Red</label>
+                </div>
+                <textarea name="interior_notes" class="auto-save-field" rows="2" placeholder="Interior notes..."></textarea>
+            </div>
+
+            <div class="section-card status-amber">
+                <h2 class="font-bold text-lg mb-4">7. Diagnostics (OBD)</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label>Fault Codes Present?</label>
+                        <select name="diagnostics_faultCodes" class="auto-save-field">
+                            <option value="No" selected>No</option>
+                            <option value="Yes">Yes</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>ABS/Airbag Warnings?</label>
+                        <select name="diagnostics_safetyWarnings" class="auto-save-field">
+                            <option value="No" selected>No</option>
+                            <option value="Yes">Yes</option>
+                        </select>
+                    </div>
+                </div>
+                <label>Overall Diagnostics Status</label>
+                <div class="radio-group mb-4">
+                    <label class="radio-item text-green-600"><input type="radio" name="diagnostics_status" value="Green" class="auto-save-field"> Green</label>
+                    <label class="radio-item text-yellow-600"><input type="radio" name="diagnostics_status" value="Amber" class="auto-save-field"> Amber</label>
+                    <label class="radio-item text-red-600"><input type="radio" name="diagnostics_status" value="Red" class="auto-save-field"> Red</label>
+                </div>
+                <textarea name="diagnostics_notes" class="auto-save-field" rows="2" placeholder="List specific error codes if any..."></textarea>
+            </div>
+
+            <div class="section-card status-amber">
+                <h2 class="font-bold text-lg mb-4">8. Road Test</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label>Cold Start Behavior</label>
+                        <select name="roadTest_coldStart" class="auto-save-field">
+                            <option value="Normal" selected>Normal</option>
+                            <option value="Abnormal">Abnormal</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Acceleration Response</label>
+                        <select name="roadTest_acceleration" class="auto-save-field">
+                            <option value="Smooth" selected>Smooth</option>
+                            <option value="Delayed">Delayed</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Gear Shifting</label>
+                        <select name="roadTest_gears" class="auto-save-field">
+                            <option value="Smooth" selected>Smooth</option>
+                            <option value="Harsh">Harsh</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Steering & Braking</label>
+                        <select name="roadTest_handling" class="auto-save-field">
+                            <option value="Normal" selected>Normal</option>
+                            <option value="Concern">Concern</option>
+                        </select>
+                    </div>
+                </div>
+                <label>Overall Road Test Status</label>
+                <div class="radio-group mb-4">
+                    <label class="radio-item text-green-600"><input type="radio" name="roadTest_status" value="Green" class="auto-save-field"> Green</label>
+                    <label class="radio-item text-yellow-600"><input type="radio" name="roadTest_status" value="Amber" class="auto-save-field"> Amber</label>
+                    <label class="radio-item text-red-600"><input type="radio" name="roadTest_status" value="Red" class="auto-save-field"> Red</label>
+                </div>
+                <textarea name="roadTest_notes" class="auto-save-field" rows="2" placeholder="Road test observations..."></textarea>
+            </div>
+
+            <div class="section-card border-black bg-gray-50">
+                <h2 class="font-bold text-xl mb-4">Final Recommendation</h2>
+                
+                <div class="mb-6">
+                    <label class="text-base">Overall Vehicle Rating</label>
+                    <div class="flex flex-col gap-2 mt-2">
+                        <label class="flex items-center gap-3 p-3 bg-white rounded border cursor-pointer">
+                            <input type="radio" name="overallRating" value="GREEN" class="auto-save-field">
+                            <div>
+                                <span class="font-bold text-green-600">GREEN</span>
+                                <p class="text-xs text-gray-500">No major concerns identified</p>
+                            </div>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 bg-white rounded border cursor-pointer">
+                            <input type="radio" name="overallRating" value="AMBER" class="auto-save-field">
+                            <div>
+                                <span class="font-bold text-yellow-600">AMBER</span>
+                                <p class="text-xs text-gray-500">Wear-and-tear / attention required</p>
+                            </div>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 bg-white rounded border cursor-pointer">
+                            <input type="radio" name="overallRating" value="RED" class="auto-save-field">
+                            <div>
+                                <span class="font-bold text-red-600">RED</span>
+                                <p class="text-xs text-gray-500">Significant concerns identified</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label>Key Findings Summary</label>
+                    <textarea name="keyFindings" class="auto-save-field" rows="4" placeholder="1. Major oil leak...&#10;2. Front tyres worn..."></textarea>
+                </div>
+
+                <div class="mb-4">
+                    <label>Professional Recommendation</label>
+                    <select name="professionalRecommendation" class="auto-save-field">
+                        <option value="">Select one...</option>
+                        <option value="Suitable" selected>Suitable for purchase in current condition</option>
+                        <option value="Conditionally Suitable">Conditionally suitable (subject to repairs)</option>
+                        <option value="Not Recommended">Not recommended</option>
+                    </select>
+                </div>
+            </div>
+
+            <button type="button" id="submitBtn" class="w-full bg-green-600 text-white font-bold py-4 rounded-lg shadow-lg hover:bg-green-700 transition">
+                Finalize & Submit to Admin
+            </button>
+        </form>
+    </div>
+
+    <script src="mechanic-report.js"></script>
+</body>
+</html>

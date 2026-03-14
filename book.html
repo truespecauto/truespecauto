@@ -43,7 +43,7 @@
                     </a>
                 </div>
                 <div class="flex items-center">
-                    <a href="index.html" class="text-truespec-grey hover:text-truespec-navy font-bold text-sm uppercase tracking-wide transition">Cancel & Back</a>
+                    <a href="index.html" class="text-truespec-grey hover:text-truespec-navy font-bold text-sm uppercase tracking-wide transition">Back</a>
                 </div>
             </div>
         </div>
@@ -164,7 +164,7 @@
                     <div class="grid grid-cols-1 gap-6">
                         <div>
                             <label class="block text-sm font-bold text-gray-700">Preferred Date/Time <span class="text-red-500">*</span></label>
-                            <input type="text" id="preferredDate" placeholder="e.g. Tomorrow morning, or DD/MM/YYYY" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm border p-2.5 focus:ring-2 focus:ring-truespec-sky focus:border-truespec-sky transition">
+                            <input type="datetime-local" id="preferredDate" placeholder="e.g. Tomorrow morning, or DD/MM/YYYY" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm border p-2.5 focus:ring-2 focus:ring-truespec-sky focus:border-truespec-sky transition">
                         </div>
                         <div>
                             <label class="block text-sm font-bold text-gray-700">Specific Concerns / Notes (Optional)</label>
@@ -189,7 +189,7 @@
                     <button type="submit" id="submitBtn" class="w-full flex justify-center py-4 px-4 border border-transparent rounded-md shadow-lg text-lg font-bold text-white bg-truespec-amber hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-truespec-amber transition transform hover:-translate-y-0.5 uppercase tracking-wide">
                         Submit Inspection Request
                     </button>
-                    <p class="text-center text-xs text-gray-400 mt-4">By submitting, you agree to TrueSpec Automotive's <a href="tos.html" class="text-truespec-sky hover:underline">Terms of Service</a>.</p>
+                    <p class="text-center text-xs text-gray-400 mt-4">By submitting, you agree to TrueSpec Automotive's <a href="tos.html" class="text-truespec-sky hover:underline">Terms of Service</a>. <br>A new account will be created for you if one associated with your email does not already exist.</p>
                 </div>
             </form>
 
@@ -202,7 +202,7 @@
                 </div>
                 <h3 class="text-3xl font-extrabold text-truespec-navy uppercase tracking-wide">Booking Received!</h3>
                 <p class="mt-4 text-gray-600 text-lg max-w-lg mx-auto leading-relaxed">
-                    We have received your inspection request. We have created a secure client account for you and sent the login details to your email.
+                    We have received your inspection request. If you did not have an account, we have created a secure client account for you and sent the login details to your email. <br> If you are an existing user, you can log in to your portal to view the status of this booking and access your inspection report once it's ready. Thank you for choosing TrueSpec Automotive!
                 </p>
                 <div class="mt-10 flex flex-col sm:flex-row justify-center gap-4">
                     <a href="login.html" class="inline-block px-8 py-3 bg-truespec-navy text-white font-bold rounded shadow hover:bg-blue-900 transition uppercase tracking-wide">Login to Portal</a>

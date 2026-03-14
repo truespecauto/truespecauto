@@ -15,7 +15,7 @@ const standardChecks = [
 ];
 
 // Update your renderActionButton function (the one we made in Phase 2)
-function renderActionButton(b) {
+/*function renderActionButton(b) {
     // Inside your renderActionButton function:
 if (b.status === 'pending') return `<button onclick="openScheduleModal('${b._id}')" class="px-3 py-1.5 bg-blue-600 text-white text-xs font-bold uppercase tracking-widest rounded shadow hover:bg-blue-700">Schedule</button>`;
 
@@ -26,6 +26,28 @@ if (b.status === 'pending') return `<button onclick="openScheduleModal('${b._id}
     
     if (b.status === 'payment_submitted') return `<button onclick="openVerifyModal('${b._id}', '${b.paymentTransactionCode}', '${b.paymentScreenshotKey}')" class="px-3 py-1.5 bg-truespec-amber text-white text-xs font-bold uppercase tracking-widest rounded shadow hover:bg-yellow-600 animate-pulse">Verify Pay</button>`;
     return `<span class="text-xs text-gray-400 font-bold uppercase tracking-widest">-</span>`;
+}*/
+
+function renderActionButton(b) {
+    // If it's pending scheduling
+    if (b.status === 'pending') {
+        return `<button onclick="openScheduleModal('${b._id}')" class="px-3 py-1.5 bg-blue-600 text-white text-xs font-bold uppercase tracking-widest rounded shadow hover:bg-blue-700">Schedule</button>`;
+    }
+    
+    // Check if the mechanic has submitted the report for review
+    if (b.status === 'scheduled' && b.report && b.report.status === 'pending_admin_review') {
+        return `<button onclick="openReviewModal('${b._id}')" class="px-3 py-1.5 bg-yellow-500 text-white text-xs font-bold uppercase tracking-widest rounded shadow hover:bg-yellow-600">Review Report</button>`;
+    }
+
+    // If it's waiting for payment
+    if (b.status === 'awaiting_payment') {
+        return `<span class="px-3 py-1.5 bg-gray-200 text-gray-700 text-xs font-bold uppercase tracking-widest rounded shadow">Awaiting Pay</span>`;
+    }
+
+    if (b.status === 'payment_submitted') return `<button onclick="openVerifyModal('${b._id}', '${b.invoice.paymentTransactionCode}', '${b.invoice.paymentScreenshotKey}')" class="px-3 py-1.5 bg-truespec-amber text-white text-xs font-bold uppercase tracking-widest rounded shadow hover:bg-yellow-600 animate-pulse">Verify Pay</button>`;
+
+    // Default catch-all
+    return `<span class="text-xs text-gray-400 font-bold uppercase tracking-widest"></span>`;
 }
 
 async function updateAdminStatus(id, newStatus) {
@@ -530,7 +552,8 @@ function openDetailsModal(id) {
 
     document.getElementById('detSeller').innerText = b.sellerName || '-';
     document.getElementById('detLocation').innerText = b.locationText || '-';
-    document.getElementById('detDate').innerText = b.preferredDate || '-';
+    const preferredDate = b.preferredDate ? new Date(b.preferredDate).toLocaleString() : '-';
+    document.getElementById('detDate').innerText = preferredDate ;
     document.getElementById('detNotes').innerText = b.notes || 'None';
 
     // Populate Photos
@@ -551,10 +574,10 @@ function openDetailsModal(id) {
 
     //Populate Invoice
     const invoiceContainer = document.getElementById('detInvoice');
-    console.log("Invoice PDF Key:", b.invoicePdfKey); // Debug log to check the value
-    if (b.invoicePdfKey) {
+    console.log("Invoice PDF Key:", b.invoice.invoicePdfKey); // Debug log to check the value
+    if (b.invoice.invoicePdfKey) {
         invoiceContainer.innerHTML = `
-            <a href="${API_BASE_URL}/api/data/files/${b.invoicePdfKey}?token=${adminToken}" target="_blank" 
+            <a href="${API_BASE_URL}/api/data/files/${b.invoice.invoicePdfKey}?token=${adminToken}" target="_blank" 
                class="px-4 py-2 bg-blue-50 border border-blue-200 text-truespec-sky text-xs font-bold uppercase tracking-widest rounded hover:bg-blue-100 flex items-center">
                 <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
@@ -568,16 +591,16 @@ function openDetailsModal(id) {
 
     //Populate Payment Proof
     const paymentProofContainer = document.getElementById('detPaymentProof');
-    if (b.paymentScreenshotKey) {
+    if (b.invoice.paymentScreenshotKey) {
         paymentProofContainer.innerHTML = `
-            <a href="${API_BASE_URL}/api/data/files/${b.paymentScreenshotKey}?token=${adminToken}" target="_blank" 
+            <a href="${API_BASE_URL}/api/data/files/${b.invoice.paymentScreenshotKey}?token=${adminToken}" target="_blank" 
                class="px-4 py-2 bg-blue-50 border border-blue-200 text-truespec-sky text-xs font-bold uppercase tracking-widest rounded hover:bg-blue-100 flex items-center">
                 <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
                 </svg>
                 View Payment Proof
             </a>
-            <p class="text-xs text-gray-500 mt-1">Transaction Code: ${b.paymentTransactionCode || 'N/A'}</p>
+            <p class="text-xs text-gray-500 mt-1">Transaction Code: ${b.invoice.paymentTransactionCode || 'N/A'}</p>
         `;
     } else {
         paymentProofContainer.innerHTML = `<span class="text-gray-400 italic text-xs">No payment proof provided.</span>`;
@@ -586,10 +609,10 @@ function openDetailsModal(id) {
 
     //Populate Report
     const reportContainer = document.getElementById('detReports');
-    console.log("Report Key:", reportContainer); // Debug log to check the value
-    if (b.reportPdfKey) {
+    console.log("Report Key:", b.report.reportPdfKey); // Debug log to check the value
+    if (b.report.reportPdfKey) {
         reportContainer.innerHTML = `
-            <a href="${API_BASE_URL}/api/data/files/${b.reportPdfKey}?token=${adminToken}" target="_blank" 
+            <a href="${API_BASE_URL}/api/data/files/${b.report.reportPdfKey}?token=${adminToken}" target="_blank" 
                class="px-4 py-2 bg-blue-50 border border-blue-200 text-truespec-sky text-xs font-bold uppercase tracking-widest rounded hover:bg-blue-100 flex items-center">
                 <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
@@ -710,54 +733,7 @@ function openGenerateModal(id) {
     document.getElementById('generateModal').classList.remove('hidden');
 }
 
-document.getElementById('generateReportForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const id = document.getElementById('genBookingId').value;
-    const btn = document.getElementById('btnGenerateSubmit');
-    
-    // Collect System Checks
-    const systemChecks = [];
-    for (let i = 0; i < standardChecks.length; i++) {
-        systemChecks.push({
-            name: document.getElementById(`check_name_${i}`).value,
-            status: document.getElementById(`check_status_${i}`).value,
-            notes: document.getElementById(`check_notes_${i}`).value
-        });
-    }
 
-    const payload = {
-        price: document.getElementById('genPrice').value,
-        overallRating: document.getElementById('genRating').value,
-        summaryNotes: document.getElementById('genSummary').value,
-        systemChecks: systemChecks
-    };
-
-    btn.disabled = true; 
-    btn.innerText = "Generating PDFs... Please Wait.";
-
-    try {
-        const res = await adminFetch(`${API_BASE_URL}/api/data/admin/generate-report/${id}`, { 
-            method: 'POST', 
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        
-        if (res.ok) {
-            alert("Report & Invoice Generated Successfully! Client Billed.");
-            closeModal('generateModal');
-            fetchAdminData();
-        } else {
-            const data = await res.json(); 
-            alert(data.message || 'Generation failed');
-        }
-    } catch (e) { 
-        console.error(e); 
-        alert("Network Error");
-    } finally { 
-        btn.disabled = false; 
-        btn.innerText = "Generate & Bill Client"; 
-    }
-});
 
 
 // Open the Scheduling Modal
@@ -783,9 +759,9 @@ document.getElementById('scheduleForm').addEventListener('submit', async (e) => 
     btn.disabled = true; btn.innerText = "Saving...";
 
     try {
-        const res = await adminFetch(`${API_BASE_URL}/api/data/admin/status/${id}`, {
+        const res = await adminFetch(`${API_BASE_URL}/api/data/admin/bookings/${id}/schedule`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json','Authorization': `Bearer ${adminToken}` },
             body: JSON.stringify(payload)
         });
         
@@ -804,3 +780,177 @@ document.getElementById('scheduleForm').addEventListener('submit', async (e) => 
 });
 
 
+
+
+// Note: You will need to build the actual HTML modal in your admin-portal.html 
+// with the ID 'reviewModal', containing inputs for the report fields and the invoice price.
+
+async function openReviewModal(bookingId) {
+    // 1. Find the booking from your global state
+    const booking = globalAdminBookings.find(b => b._id === bookingId);
+    if (!booking || !booking.report) {
+        alert("Report data not found for this booking.");
+        return;
+    }
+
+    const r = booking.report; // Short reference for easier typing
+
+    // 2. Populate Admin Review Modal fields (Mirroring our Mongoose Schema)
+    
+    // Technical Specs
+    document.getElementById('admin_odometer').value = r.odometer || '';
+    document.getElementById('admin_vin').value = r.vin || '';
+    document.getElementById('admin_engine_type').value = r.engineType || 'Petrol';
+    document.getElementById('admin_transmission').value = r.transmission || 'Automatic';
+
+    // Exterior & Body
+    document.getElementById('admin_exterior_status').value = r.exterior?.status || 'Green';
+    document.getElementById('admin_exterior_alignment').value = r.exterior?.alignment || 'OK';
+    document.getElementById('admin_exterior_paint').value = r.exterior?.paint || 'OK';
+    document.getElementById('admin_exterior_dents').value = r.exterior?.dents || 'None';
+    document.getElementById('admin_exterior_glass').value = r.exterior?.glass || 'OK';
+    document.getElementById('admin_exterior_notes').value = r.exterior?.notes || '';
+
+    // Tyres, Engine, Interior, Diag, Road Test (Status + Notes)
+    const sections = ['tyres', 'engineBay', 'interior', 'diagnostics', 'roadTest'];
+    sections.forEach(sec => {
+        if (document.getElementById(`admin_${sec}_status`)) {
+            document.getElementById(`admin_${sec}_status`).value = r[sec]?.status || 'Green';
+        }
+        if (document.getElementById(`admin_${sec}_notes`)) {
+            document.getElementById(`admin_${sec}_notes`).value = r[sec]?.notes || '';
+        }
+    });
+
+    // Final Assessment
+    document.getElementById('admin_overallRating').value = r.overallRating || 'AMBER';
+    document.getElementById('admin_professionalRecommendation').value = r.professionalRecommendation || 'Suitable';
+    document.getElementById('admin_keyFindings').value = r.keyFindings || '';
+
+    // Invoice Price (stored on the Booking, not the report)
+    document.getElementById('invoicePrice').value = booking.price || 5000;
+
+    // 3. Show the modal
+    document.getElementById('reviewModal').classList.remove('hidden');
+
+    // 4. Handle the Approval Submission
+    const approveBtn = document.getElementById('approveReportBtn');
+    
+    // Clear old listeners
+    const newApproveBtn = approveBtn.cloneNode(true);
+    approveBtn.parentNode.replaceChild(newApproveBtn, approveBtn);
+
+    newApproveBtn.addEventListener('click', async () => {
+        newApproveBtn.textContent = 'Publishing...';
+        newApproveBtn.disabled = true;
+
+        // Collect all data back into an object
+        // We use underscores so the backend mapping logic we wrote earlier handles it perfectly
+        const editedReportData = {
+            odometer: document.getElementById('admin_odometer').value,
+            vin: document.getElementById('admin_vin').value,
+            engine_type: document.getElementById('admin_engine_type').value,
+            transmission: document.getElementById('admin_transmission').value,
+            
+            exterior_status: document.getElementById('admin_exterior_status').value,
+            exterior_alignment: document.getElementById('admin_exterior_alignment').value,
+            exterior_paint: document.getElementById('admin_exterior_paint').value,
+            exterior_dents: document.getElementById('admin_exterior_dents').value,
+            exterior_glass: document.getElementById('admin_exterior_glass').value,
+            exterior_notes: document.getElementById('admin_exterior_notes').value,
+
+            tyres_status: document.getElementById('admin_tyres_status').value,
+            tyres_notes: document.getElementById('admin_tyres_notes').value,
+
+            engine_status: document.getElementById('admin_engineBay_status').value,
+            engine_notes: document.getElementById('admin_engineBay_notes').value,
+
+            interior_status: document.getElementById('admin_interior_status').value,
+            interior_notes: document.getElementById('admin_interior_notes').value,
+
+            diag_status: document.getElementById('admin_diagnostics_status').value,
+            diag_notes: document.getElementById('admin_diagnostics_notes').value,
+
+            road_status: document.getElementById('admin_roadTest_status').value,
+            road_notes: document.getElementById('admin_roadTest_notes').value,
+
+            overall_rating: document.getElementById('admin_overallRating').value,
+            recommendation: document.getElementById('admin_professionalRecommendation').value,
+            key_findings: document.getElementById('admin_keyFindings').value
+        };
+
+        const finalPrice = document.getElementById('invoicePrice').value;
+
+        try {
+            const response = await fetch(`/api/data/bookings/${bookingId}/approve-report`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('adminToken')}` // Ensure token is passed
+                },
+                body: JSON.stringify({
+                    reportData: editedReportData,
+                    price: finalPrice
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                alert('Success! Report published and invoice generated.');
+                document.getElementById('reviewModal').classList.add('hidden');
+                // Trigger dashboard refresh
+                window.location.reload(); // Simple way to refresh all data and reflect changes 
+            } else {
+                throw new Error(data.message || 'Failed to approve');
+            }
+        } catch (error) {
+            console.error('Approval Error:', error);
+            alert(`Error: ${error.message}`);
+            newApproveBtn.textContent = 'Approve & Generate PDF';
+            newApproveBtn.disabled = false;
+        }
+    });
+
+    setTimeout(() => {
+        const allStatusSelects = document.querySelectorAll('.admin-status-select');
+        allStatusSelects.forEach(select => applyStatusColoring(select));
+    }, 500); // Small timeout to ensure DOM is ready
+}
+
+
+
+
+/**
+ * Updates the visual style of a section based on its status value (Green/Amber/Red)
+ * @param {HTMLElement} selectElement - The select dropdown that was changed
+ */
+function applyStatusColoring(selectElement) {
+    // Find the closest container to highlight. 
+    // In our modal, this is the <section> or the <div> with 'border'
+    const container = selectElement.closest('section') || selectElement.closest('.border');
+    if (!container) return;
+
+    const val = selectElement.value.toUpperCase();
+
+    // Reset classes
+    container.classList.remove('bg-green-50', 'border-green-400', 'bg-yellow-50', 'border-yellow-400', 'bg-red-50', 'border-red-400', 'bg-gray-50');
+
+    // Apply specific styles
+    if (val === 'GREEN') {
+        container.classList.add('bg-green-50', 'border-green-400');
+    } else if (val === 'AMBER') {
+        container.classList.add('bg-yellow-50', 'border-yellow-400');
+    } else if (val === 'RED') {
+        container.classList.add('bg-red-50', 'border-red-400');
+    } else {
+        container.classList.add('bg-gray-50');
+    }
+}
+
+// Event Listener for real-time changes
+document.addEventListener('change', (e) => {
+    if (e.target.classList.contains('admin-status-select')) {
+        applyStatusColoring(e.target);
+    }
+});
