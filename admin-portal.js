@@ -574,7 +574,7 @@ function openDetailsModal(id) {
 
     //Populate Invoice
     const invoiceContainer = document.getElementById('detInvoice');
-    console.log("Invoice PDF Key:", b.invoice.invoicePdfKey); // Debug log to check the value
+    //console.log("Invoice PDF Key:", b.invoice.invoicePdfKey); // Debug log to check the value
     if (b.invoice.invoicePdfKey) {
         invoiceContainer.innerHTML = `
             <a href="${API_BASE_URL}/api/data/files/${b.invoice.invoicePdfKey}?token=${adminToken}" target="_blank" 
