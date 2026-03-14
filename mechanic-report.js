@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // 1. Fetch Initial Data
     try {
-        const response = await fetch(`/api/data/mechanic/report/${token}`);
+        const response = await fetch(API_BASE_URL+`/api/data/mechanic/report/${token}`);
         const data = await response.json();
 
         if (!response.ok) throw new Error(data.message);
@@ -95,7 +95,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const reportData = Object.fromEntries(formData.entries());
 
         try {
-            const response = await fetch(`/api/data/mechanic/report/${token}`, {
+            const response = await fetch(API_BASE_URL+`/api/data/mechanic/report/${token}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(reportData)
@@ -129,7 +129,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         await autoSave();
 
         try {
-            const response = await fetch(`/api/data/mechanic/report/${token}/submit`, {
+            const response = await fetch(API_BASE_URL+`/api/data/mechanic/report/${token}/submit`, {
                 method: 'POST'
             });
 
