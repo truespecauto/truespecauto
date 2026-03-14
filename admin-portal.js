@@ -591,7 +591,7 @@ function openDetailsModal(id) {
 
     //Populate Payment Proof
     const paymentProofContainer = document.getElementById('detPaymentProof');
-    if (b.invoice.paymentScreenshotKey) {
+    if (b?.invoice?.paymentScreenshotKey) {
         paymentProofContainer.innerHTML = `
             <a href="${API_BASE_URL}/api/data/files/${b.invoice.paymentScreenshotKey}?token=${adminToken}" target="_blank" 
                class="px-4 py-2 bg-blue-50 border border-blue-200 text-truespec-sky text-xs font-bold uppercase tracking-widest rounded hover:bg-blue-100 flex items-center">
@@ -609,8 +609,8 @@ function openDetailsModal(id) {
 
     //Populate Report
     const reportContainer = document.getElementById('detReports');
-    console.log("Report Key:", b.report.reportPdfKey); // Debug log to check the value
-    if (b.report.reportPdfKey) {
+    //console.log("Report Key:", b.report.reportPdfKey); // Debug log to check the value
+    if (b?.report?.reportPdfKey) {
         reportContainer.innerHTML = `
             <a href="${API_BASE_URL}/api/data/files/${b.report.reportPdfKey}?token=${adminToken}" target="_blank" 
                class="px-4 py-2 bg-blue-50 border border-blue-200 text-truespec-sky text-xs font-bold uppercase tracking-widest rounded hover:bg-blue-100 flex items-center">
