@@ -57,7 +57,7 @@
             <div class="bg-truespec-navy py-8 px-8 text-center relative overflow-hidden">
                 <div class="absolute -right-10 -top-10 w-40 h-40 bg-blue-800 rounded-full opacity-50 blur-2xl"></div>
                 <h1 class="text-3xl font-extrabold text-white uppercase tracking-wide relative z-10">Book Your Inspection</h1>
-                <p class="text-blue-200 mt-2 text-sm relative z-10">Fill out the details below to schedule your pre-purchase vehicle inspection.</p>
+                <p class="text-blue-200 mt-2 text-sm relative z-10">Fill out the details below to schedule your pre-purchase car inspection.</p>
             </div>
             
             <form id="bookingForm" class="py-8 px-8 space-y-8">
@@ -86,9 +86,9 @@
                     </div>
                 </div>
 
-                <!-- 2. Vehicle Information -->
+                <!-- 2. Car Information -->
                 <div>
-                    <h3 class="text-xs font-bold text-truespec-sky uppercase tracking-widest border-b pb-2 mb-4">2. Vehicle Details</h3>
+                    <h3 class="text-xs font-bold text-truespec-sky uppercase tracking-widest border-b pb-2 mb-4">2. Car Details</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-sm font-bold text-gray-700">Make <span class="text-red-500">*</span></label>
@@ -146,7 +146,7 @@
                                                 <!-- MAP PLACEHOLDER -->
                         <div>
                             <label class="block text-sm font-bold text-gray-700 mb-2">Pinpoint Location on Map</label>
-                            <p class="text-xs text-gray-500 mb-2">Drag the blue marker to the exact vehicle location.</p>
+                            <p class="text-xs text-gray-500 mb-2">Drag the blue marker to the exact car location.</p>
                             <!-- The map container must have a specific height and z-index -->
                             <div id="mapPlaceholder" class="w-full bg-gray-100 border border-gray-300 rounded-md relative z-0" style="height: 400px;"></div>
                             
@@ -171,7 +171,7 @@
                             <textarea id="notes" rows="2" placeholder="e.g. Please check if the gearbox shifts smoothly, seller mentioned a scratch on left door." class="mt-1 block w-full border-gray-300 rounded-md shadow-sm border p-2.5 focus:ring-2 focus:ring-truespec-sky focus:border-truespec-sky transition"></textarea>
                         </div>
                         <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-1">Upload Vehicle Photos (Optional)</label>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">Upload Car Photos (Optional)</label>
                             <p class="text-xs text-gray-500 mb-2">If you have photos from the seller, upload them here (Max 5MB each. JPG, PNG, PDF).</p>
                             <input type="file" id="photos" multiple accept="image/jpeg, image/png, application/pdf" class="block w-full text-sm text-gray-500
                             file:mr-4 file:py-2.5 file:px-4
@@ -214,8 +214,7 @@
     </div>
 
     <script>
-        // Check URL params for vehicle type (pre-filling logic from homepage pricing)
-        // Check URL params for vehicle type (pre-filling logic from homepage pricing)
+        // Check URL params for car type (pre-filling logic from homepage pricing)
         const urlParams = new URLSearchParams(window.location.search);
         const typeParam = urlParams.get('type');
         if(typeParam) {
@@ -295,7 +294,7 @@
             formData.append('phone', document.getElementById('phone').value);
             formData.append('whatsapp', document.getElementById('whatsapp').value);
             
-            // Append Vehicle Info
+            // Append Car Info
             formData.append('make', document.getElementById('make').value);
             formData.append('model', document.getElementById('model').value);
             formData.append('year', document.getElementById('year').value);

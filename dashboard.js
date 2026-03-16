@@ -57,7 +57,7 @@ function renderClientDashboard(bookings) {
         html += `
         <div class="bg-white p-10 rounded-xl shadow-sm border border-gray-100 text-center">
             <h3 class="text-xl font-bold text-gray-800 mb-2">No Inspections Yet</h3>
-            <p class="text-gray-500 mb-6">You don't have any vehicle inspections on file.</p>
+            <p class="text-gray-500 mb-6">You don't have any car inspections on file.</p>
             <a href="book.html" class="inline-block bg-truespec-amber text-white px-8 py-3 rounded font-bold hover:bg-yellow-600 transition uppercase tracking-wide">Book Now</a>
         </div>`;
     }
@@ -198,7 +198,7 @@ function renderActionArea(booking) {
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div class="bg-slate-50 p-6 rounded-lg border border-gray-200">
                 <h4 class="text-lg font-bold text-gray-900 uppercase tracking-wide mb-4">Payment Required</h4>
-                <p class="text-sm text-gray-600 mb-4">Your vehicle inspection is complete. Please settle the invoice below to unlock your comprehensive condition report.</p>
+                <p class="text-sm text-gray-600 mb-4">Your car inspection is complete. Please settle the invoice below to unlock your comprehensive condition report.</p>
                 <div class="bg-white p-4 rounded border border-gray-200 mb-4 flex justify-between items-center shadow-sm">
                     <div>
                         <span class="block text-xs text-gray-500 uppercase font-bold tracking-widest">Amount Due</span>
@@ -231,7 +231,7 @@ function renderActionArea(booking) {
                     </svg>
                 </div>
                 <h4 class="text-xl font-bold text-gray-600 uppercase tracking-wide mb-2">Report Locked</h4>
-                <p class="text-sm text-gray-500 max-w-xs">Submit payment confirmation to unlock and download your detailed vehicle condition report.</p>
+                <p class="text-sm text-gray-500 max-w-xs">Submit payment confirmation to unlock and download your detailed car condition report.</p>
                 <button disabled class="mt-6 px-6 py-3 bg-gray-300 text-gray-500 font-bold rounded uppercase tracking-widest cursor-not-allowed">Download Report</button>
             </div>
         </div>`;
@@ -332,7 +332,7 @@ function logout() {
     if (!b) return;
 
     // Populate Fields
-    document.getElementById('cDetVehicle').innerText = `${b.make} ${b.model}`;
+    document.getElementById('cDetCar').innerText = `${b.make} ${b.model}`;
     document.getElementById('cDetYear').innerText = b.year || '-';
     document.getElementById('cDetReg').innerText = b.registrationNumber || 'N/A';
     document.getElementById('cDetPlan').innerText = b.inspectionType || '-';
@@ -377,7 +377,7 @@ function openClientDetailsModal(id) {
     if (!b) return;
 
     // Populate Fields
-    document.getElementById('cDetVehicle').innerText = `${b.make} ${b.model}`;
+    document.getElementById('cDetCar').innerText = `${b.make} ${b.model}`;
     document.getElementById('cDetYear').innerText = b.year || '-';
     document.getElementById('cDetReg').innerText = b.registrationNumber || 'N/A';
     document.getElementById('cDetPlan').innerText = b.inspectionType || '-';

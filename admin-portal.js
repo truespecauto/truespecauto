@@ -450,7 +450,7 @@ function openDetailsModal(id) {
     document.getElementById('detPhone').innerText = b.phone || '-';
     document.getElementById('detWhatsApp').innerText = b.whatsapp || 'N/A';
     
-    document.getElementById('detVehicle').innerText = `${b.make} ${b.model}`;
+    document.getElementById('detCar').innerText = `${b.make} ${b.model}`;
     document.getElementById('detYear').innerText = b.year || '-';
     document.getElementById('detReg').innerText = b.registrationNumber || 'N/A';
     document.getElementById('detPlan').innerText = b.inspectionType || '-';
@@ -545,7 +545,7 @@ function openDetailsModal(id) {
     document.getElementById('detPhone').innerText = b.phone || '-';
     document.getElementById('detWhatsApp').innerText = b.whatsapp || 'N/A';
     
-    document.getElementById('detVehicle').innerText = `${b.make} ${b.model}`;
+    document.getElementById('detCar').innerText = `${b.make} ${b.model}`;
     document.getElementById('detYear').innerText = b.year || '-';
     document.getElementById('detReg').innerText = b.registrationNumber || 'N/A';
     document.getElementById('detPlan').innerText = b.inspectionType || '-';
